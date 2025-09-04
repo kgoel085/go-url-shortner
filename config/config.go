@@ -16,14 +16,23 @@ type dbConfig struct {
 	SSLMode  string `env:"DB_SSL_MODE" envDefault:"disable"`
 }
 
+type smtpConfig struct {
+	Host     string `env:"SMTP_HOST,required"`
+	Port     string `env:"SMTP_PORT,required"`
+	Username string `env:"SMTP_USER,required" binding:"mail"`
+	Password string `env:"SMTP_PWD,required"`
+}
+
 type appConfig struct {
+	Name string `env:"APP_NAME" envDefault:"URL Shortner - Go"`
 	Host string `env:"HOST,required" envDefault:""`
 	Port string `env:"PORT,required" envDefault:"8000"`
 }
 
 type AllConfig struct {
-	App appConfig
-	DB  dbConfig
+	App  appConfig
+	DB   dbConfig
+	SMTP smtpConfig
 }
 
 var Config AllConfig

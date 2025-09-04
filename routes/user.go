@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"example.com/url-shortner/mail"
 	"example.com/url-shortner/model"
 	"example.com/url-shortner/utils"
 	"github.com/gin-gonic/gin"
@@ -34,6 +35,7 @@ func handleSignUp(ctx *gin.Context) {
 		return
 	}
 
+	go mail.SendSignedUpUserMail(user)
 	ctx.JSON(http.StatusCreated, gin.H{
 		"message": "User signed up successfully !",
 	})
