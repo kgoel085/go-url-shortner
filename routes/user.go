@@ -12,8 +12,8 @@ import (
 
 func UserRoutes(router *gin.RouterGroup) {
 	router.POST("/sign-up", handleSignUp)
-	router.POST("/verify-credentials", handleVerifyCredentials)
 	router.POST("/login", handleLogin)
+	router.POST("/verify-credentials", handleVerifyCredentials)
 }
 
 func handleLogin(ctx *gin.Context) {

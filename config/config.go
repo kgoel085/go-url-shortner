@@ -28,9 +28,10 @@ type smtpConfig struct {
 }
 
 type appConfig struct {
-	Name string `env:"APP_NAME" envDefault:"URL Shortner - Go"`
-	Host string `env:"HOST,required" envDefault:""`
-	Port string `env:"PORT,required" envDefault:"8000"`
+	Name           string `env:"APP_NAME" envDefault:"URL Shortner - Go"`
+	Host           string `env:"HOST,required" envDefault:""`
+	Port           string `env:"PORT,required" envDefault:"8000"`
+	TrustedProxies string `env:"TRUSTED_ORIGINS" envDefault:""`
 }
 
 type JWTConfig struct {

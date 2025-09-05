@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"example.com/url-shortner/config"
 	"example.com/url-shortner/db"
@@ -21,6 +22,13 @@ func main() {
 	routes.SetUpRouter(server)
 
 	appUrl := fmt.Sprintf("%s:%s", config.Config.APP.Host, config.Config.APP.Port)
+	trustedProxies := strings.Split(config.Config.APP.TrustedProxies, ",")
+	if len(trustedProxies) > 0 {
+		trustedProxies = append(trustedProxies, appUrl)
+
+		utils.Log.Info("Trusted proxies list: ", trustedProxies)
+		server.SetTrustedProxies(trustedProxies)
+	}
 
 	utils.Log.Info("Starting server...")
 	server.Run(appUrl)
