@@ -11,69 +11,134 @@ import (
 
 	"example.com/url-shortner/config"
 	"example.com/url-shortner/model"
-	"example.com/url-shortner/utils"
 	"github.com/jordan-wright/email"
 )
+
+type MailType string
+
+const (
+	MailTypeSignUp  MailType = "sign_up"
+	MailTypeSendOTP MailType = "send_otp"
+)
+
+type MailOptions interface{}
+
+type AppConfigOptions struct {
+	APP_NAME string
+}
+
+type SignUpMailOptions struct {
+	AppConfigOptions
+	USER_EMAIL    string
+	LOGIN_URL     string
+	SUPPORT_EMAIL string
+	IMG_BASE_URL  template.URL
+}
+
+type SendOTPMailOptions struct {
+	AppConfigOptions
+	ACTION_TYPE   string
+	USER_EMAIL    string
+	OTP_CODE      string
+	SUPPORT_EMAIL string
+	IMG_BASE_URL  template.URL
+}
 
 //go:embed template/sign-up-success.html
 var signUpTemplate string
 
+//go:embed template/send-otp.html
+var sendOtpTemplate string
+
 //go:embed assets/logo.png
 var logoImg []byte
+
+var mailTemplates = map[MailType]string{
+	MailTypeSignUp:  signUpTemplate,
+	MailTypeSendOTP: sendOtpTemplate,
+}
 
 func logoBase64() string {
 	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(logoImg)
 }
 
-func SendSignedUpUserMail(u model.User) error {
+func sendMail(mailType MailType, opts MailOptions, toEmail string, subject string) error {
+	tmplStr := mailTemplates[mailType]
 
-	type SignUpUserMailOpt struct {
-		APP_NAME      string
-		USER_EMAIL    string
-		LOGIN_URL     string
-		SUPPORT_EMAIL string
-		IMG_BASE_URL  template.URL
+	switch mailType {
+	case MailTypeSignUp:
+		signUpOpts, ok := opts.(SignUpMailOptions)
+		if !ok {
+			return fmt.Errorf("opts must be SignUpMailOptions for MailTypeSignUp")
+		}
+
+		signUpOpts.APP_NAME = config.Config.APP.Name
+		opts = signUpOpts
+	case MailTypeSendOTP:
+		loginOtpOpts, ok := opts.(SendOTPMailOptions)
+		if !ok {
+			return fmt.Errorf("opts must be SendOTPMailOptions for MailTypeSendOTP")
+		}
+		loginOtpOpts.APP_NAME = config.Config.APP.Name
+		opts = loginOtpOpts
+	default:
+		return fmt.Errorf("unknown mail type: %s", mailType)
 	}
 
-	t, parseErr := template.New("welcome").Parse(string(signUpTemplate))
+	t, parseErr := template.New(string(mailType)).Parse(tmplStr)
 	if parseErr != nil {
 		return parseErr
 	}
 
-	data := SignUpUserMailOpt{
-		APP_NAME:      config.Config.App.Name,
-		USER_EMAIL:    u.Email,
-		LOGIN_URL:     "http://localhost/logiin",
-		SUPPORT_EMAIL: "support@support.com",
-		IMG_BASE_URL:  template.URL(logoBase64()),
-	}
-
 	var buf bytes.Buffer
-	executeErr := t.Execute(&buf, data)
+	executeErr := t.Execute(&buf, opts)
 	if executeErr != nil {
 		return executeErr
 	}
 
-	parsedHTML := buf.String()
-	utils.Log.Info("User signed up mail to send: ", u)
-
-	subject := fmt.Sprintf("Welcome aboard - %s !", config.Config.App.Name)
-
 	e := email.NewEmail()
-	e.From = "Your Name <your@email.com>"
-	e.To = []string{data.USER_EMAIL}
+	e.From = fmt.Sprintf("%s <your@email.com>", config.Config.APP.Name)
+	e.To = []string{toEmail}
 	e.Subject = subject
-	e.HTML = []byte(parsedHTML)
-	e.Text = []byte(parsedHTML)
+	e.HTML = buf.Bytes()
+	e.Text = buf.Bytes()
 
 	smtpUrl := fmt.Sprintf("%s:%s", config.Config.SMTP.Host, config.Config.SMTP.Port)
-
 	err := e.Send(smtpUrl,
 		smtp.PlainAuth("", config.Config.SMTP.Username, config.Config.SMTP.Password, config.Config.SMTP.Host))
-
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return nil
+}
+
+func SendSignedUpUserMail(u model.User) error {
+	data := SignUpMailOptions{
+		USER_EMAIL:    u.Email,
+		LOGIN_URL:     "http://localhost/login",
+		SUPPORT_EMAIL: "support@support.com",
+		IMG_BASE_URL:  template.URL(logoBase64()),
+		AppConfigOptions: AppConfigOptions{
+			APP_NAME: config.Config.APP.Name,
+		},
+	}
+
+	return sendMail(MailTypeSignUp, data, u.Email, "Welcome to "+config.Config.APP.Name)
+}
+
+func SendOtpUserMail(o model.Otp) error {
+	data := SendOTPMailOptions{
+		USER_EMAIL:    o.Key,
+		SUPPORT_EMAIL: "support@support.com",
+		IMG_BASE_URL:  template.URL(logoBase64()),
+		ACTION_TYPE:   string(o.Action),
+		OTP_CODE:      o.OtpCode,
+		AppConfigOptions: AppConfigOptions{
+			APP_NAME: config.Config.APP.Name,
+		},
+	}
+
+	subject := fmt.Sprintf("Your OTP to %s for %s", o.Action, config.Config.APP.Name)
+	return sendMail(MailTypeSendOTP, data, o.Key, subject)
 }

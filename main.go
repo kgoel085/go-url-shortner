@@ -20,7 +20,7 @@ func main() {
 	validator.LoadCustomBindings()
 	routes.SetUpRouter(server)
 
-	appUrl := fmt.Sprintf("%s:%s", config.Config.App.Host, config.Config.App.Port)
+	appUrl := fmt.Sprintf("%s:%s", config.Config.APP.Host, config.Config.APP.Port)
 
 	utils.Log.Info("Starting server...")
 	server.Run(appUrl)

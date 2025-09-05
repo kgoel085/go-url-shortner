@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -12,31 +11,37 @@ import (
 
 type User struct {
 	ID        int64     `json:"id"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
+	Email     string    `json:"email" binding:"email"`
+	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type SignUpUser struct {
-	Email    string `json:"email" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,strongpwd"`
+}
+
+type UserCredentials struct {
+	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,strongpwd"`
 }
 
 type LoginUser struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	UserCredentials
+	OtpToken string `json:"otp_token" binding:"required"`
+	OtpCode  string `json:"otp_code" binding:"required"`
 }
 
 func (u *User) Save() error {
 	userByEmail, userByEmailErr := getUserByEmail(u.Email)
 	if userByEmail.Email == u.Email || userByEmailErr == nil {
-		return errors.New("User already exists !")
+		return fmt.Errorf("user already exists !")
 	}
 
 	hashedPwd, hashPwdErr := utils.HashPwd(u.Password)
 	if hashPwdErr != nil {
 		errStr := fmt.Sprintf("Error while trying to hash - %s !", hashPwdErr.Error())
-		return errors.New(errStr)
+		return fmt.Errorf(errStr)
 	}
 
 	query := `INSERT INTO users (email, password, created_at) VALUES ($1, $2, $3) RETURNING id, created_at`
@@ -49,10 +54,34 @@ func (u *User) Save() error {
 	return rowErr
 }
 
+func (u *User) GenerateJWT() (string, error) {
+	return utils.GenerateJWT(u.ID)
+}
+
+func (u *User) ValidateCredentials() error {
+	userByEmail, userByEmailErr := getUserByEmail(u.Email)
+	if userByEmailErr != nil {
+		return userByEmailErr
+	}
+
+	u.ID = userByEmail.ID
+
+	userPwdHash := userByEmail.Password
+	userPwd := u.Password
+
+	// Check pwd
+	isValidPwd := utils.CheckHashPwd(userPwd, userPwdHash)
+	if !isValidPwd {
+		return fmt.Errorf("Invalid password !")
+	}
+
+	return nil
+}
+
 func getUserByEmail(email string) (User, error) {
 	var user User
 
-	query := `SELECT * FROM users WHERE email ILIKE $1`
+	query := `SELECT id, email, password, created_at FROM users WHERE email ILIKE $1`
 	row := db.DB.QueryRow(query, email)
 
 	logStr := fmt.Sprintf("Check User via EMAIL: %s, %s", query, email)
@@ -61,7 +90,7 @@ func getUserByEmail(email string) (User, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, errors.New("User not found")
+			return user, fmt.Errorf("User not found")
 		}
 		return user, err
 	}

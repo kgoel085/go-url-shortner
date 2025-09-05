@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"example.com/url-shortner/config"
+	"example.com/url-shortner/utils"
 	_ "github.com/lib/pq"
 )
 
@@ -38,6 +39,47 @@ func InitDB() {
 }
 
 func createTables() {
+	createUserTable()
+	createOtpTable()
+}
+
+func createOtpTable() {
+	createOtpTable := `
+	DO $$
+	BEGIN
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'otp_type') THEN
+					CREATE TYPE otp_type AS ENUM ('email', 'phone');
+			END IF;
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'otp_action_type') THEN
+					CREATE TYPE otp_action_type AS ENUM ('login', 'signup', 'reset_password');
+			END IF;
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'otp_status') THEN
+					CREATE TYPE otp_status AS ENUM ('pending', 'success', 'expire');
+			END IF;
+	END$$;
+
+	CREATE TABLE IF NOT EXISTS otp (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		key TEXT NOT NULL,
+		type otp_type NOT NULL,
+		action otp_action_type NOT NULL,
+		otp TEXT NOT NULL,
+		status otp_status NOT NULL DEFAULT 'pending',
+		token UUID NOT NULL DEFAULT gen_random_uuid(),
+		created_at TIMESTAMP NOT NULL
+	);`
+
+	_, err := DB.Exec(createOtpTable)
+	if err != nil {
+		errStr := fmt.Sprintf("Error creating otp table: %v", err)
+		utils.Log.Error(errStr)
+		panic(errStr)
+	} else {
+		utils.Log.Info("Table `otp` created or already exists")
+	}
+}
+
+func createUserTable() {
 	createUserTable := `CREATE TABLE IF NOT EXISTS users (
 		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 		email TEXT NOT NULL UNIQUE,
@@ -47,8 +89,10 @@ func createTables() {
 
 	_, err := DB.Exec(createUserTable)
 	if err != nil {
-		panic(fmt.Sprintf("Error creating users table: %v", err))
+		errStr := fmt.Sprintf("Error creating users table: %v", err)
+		utils.Log.Error(errStr)
+		panic(errStr)
 	} else {
-		fmt.Println("Table `users` created or already exists")
+		utils.Log.Info("Table `users` created or already exists")
 	}
 }

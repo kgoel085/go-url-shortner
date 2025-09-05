@@ -7,6 +7,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type otpConfig struct {
+	ExpiryMinutes int64 `env:"OTP_EXPIRY_MINUTES" envDefault:"5"`
+}
+
 type dbConfig struct {
 	Host     string `env:"DB_HOST,required" envDefault:"localhost"`
 	Port     int64  `env:"DB_PORT,required" envDefault:"5432"`
@@ -29,10 +33,17 @@ type appConfig struct {
 	Port string `env:"PORT,required" envDefault:"8000"`
 }
 
+type JWTConfig struct {
+	SecretKey     string `env:"JWT_SECRET,required"`
+	ExpiryMinutes int64  `env:"JWT_EXPIRY_MINUTES" envDefault:"60"`
+}
+
 type AllConfig struct {
-	App  appConfig
+	APP  appConfig
 	DB   dbConfig
 	SMTP smtpConfig
+	OTP  otpConfig
+	JWT  JWTConfig
 }
 
 var Config AllConfig
