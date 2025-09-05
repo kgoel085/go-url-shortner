@@ -104,11 +104,31 @@ func handleSignUp(ctx *gin.Context) {
 		Password: userToSignUp.Password,
 	}
 
+	otpVerify := model.VerifyOtp{
+		Token:  userToSignUp.OtpToken,
+		Otp:    userToSignUp.OtpCode,
+		Action: string(model.OtpActionTypeSignUp),
+	}
+	otpErr := otpVerify.Verify()
+	if otpErr != nil {
+		utils.HandleValidationError(ctx, otpErr)
+		return
+	}
+
+	utils.Log.Info("OTP verified successfully")
+
 	saveErr := user.Save()
 	if saveErr != nil {
 		utils.HandleValidationError(ctx, saveErr)
 		return
 	}
+
+	otpVerifyErr := otpVerify.VerifyWithUpdate() // Mark OTP as success, but ignore any error
+	if otpVerifyErr != nil {
+		utils.Log.Error("Error updating OTP status to success: \n", otpVerifyErr)
+	}
+
+	utils.Log.Info("User signed up successfully: ", user.Email)
 
 	go mail.SendSignedUpUserMail(user)
 	ctx.JSON(http.StatusCreated, gin.H{

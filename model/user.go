@@ -16,20 +16,24 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type SignUpUser struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,strongpwd"`
-}
-
 type UserCredentials struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,strongpwd"`
 }
 
-type LoginUser struct {
-	UserCredentials
+type UserOtp struct {
 	OtpToken string `json:"otp_token" binding:"required"`
 	OtpCode  string `json:"otp_code" binding:"required"`
+}
+
+type SignUpUser struct {
+	UserCredentials
+	UserOtp
+}
+
+type LoginUser struct {
+	UserCredentials
+	UserOtp
 }
 
 func (u *User) Save() error {

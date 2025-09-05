@@ -22,9 +22,9 @@ const (
 )
 
 const (
-	OtpActionTypeLogin OtpActionType = "login"
-	// OtpActionTypeSignup       OtpActionType = 'signup'
-	// OtpActionTypeResetPassword OtpActionType = 'reset_password'
+	OtpActionTypeLogin         OtpActionType = "login"
+	OtpActionTypeSignUp        OtpActionType = "signup"
+	OtpActionTypeResetPassword OtpActionType = "reset_password"
 )
 
 const (
@@ -116,15 +116,17 @@ func (otp *Otp) UpdateStatus(status OtpStatus) error {
 
 func (otp *Otp) Generate() error {
 	// OTP Type checks
-	switch otp.Type {
-	case OtpTypeEmail:
+	switch {
+	case otp.Action == OtpActionTypeLogin && otp.Type == OtpTypeEmail:
 		{
-			userEmail, userEmailErr := getUserByEmail(otp.Key)
-			if userEmailErr != nil {
-				return userEmailErr
-			}
-			if userEmail.ID == 0 {
-				return fmt.Errorf("No user found with email %s", otp.Key)
+			{
+				userEmail, userEmailErr := getUserByEmail(otp.Key)
+				if userEmailErr != nil {
+					return userEmailErr
+				}
+				if userEmail.ID == 0 {
+					return fmt.Errorf("No user found with email %s", otp.Key)
+				}
 			}
 		}
 	}
@@ -199,7 +201,7 @@ func (ot OtpType) IsValid() bool {
 
 func (ot OtpActionType) IsValid() bool {
 	switch ot {
-	case OtpActionTypeLogin:
+	case OtpActionTypeLogin, OtpActionTypeSignUp, OtpActionTypeResetPassword:
 		return true
 	}
 	return false
