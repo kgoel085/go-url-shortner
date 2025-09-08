@@ -41,6 +41,7 @@ func InitDB() {
 func createTables() {
 	createUserTable()
 	createOtpTable()
+	createUrlTable()
 }
 
 func createOtpTable() {
@@ -76,6 +77,36 @@ func createOtpTable() {
 		panic(errStr)
 	} else {
 		utils.Log.Info("Table `otp` created or already exists")
+	}
+}
+
+func createUrlTable() {
+	createUrlTable := `
+	DO $$
+	BEGIN
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'url_status') THEN
+					CREATE TYPE url_status AS ENUM ('active', 'inactive', 'deleted', 'expired');
+			END IF;
+	END$$;
+
+	CREATE TABLE IF NOT EXISTS url (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		user_id BIGINT NOT NULL,
+		url TEXT NOT NULL,
+		code TEXT NOT NULL UNIQUE,
+		status url_status NOT NULL DEFAULT 'active',
+		created_at TIMESTAMP NOT NULL,
+		expiry_at TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id)
+	);`
+
+	_, err := DB.Exec(createUrlTable)
+	if err != nil {
+		errStr := fmt.Sprintf("Error creating urls table: %v", err)
+		utils.Log.Error(errStr)
+		panic(errStr)
+	} else {
+		utils.Log.Info("Table `urls` created or already exists")
 	}
 }
 

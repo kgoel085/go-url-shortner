@@ -36,7 +36,7 @@ type appConfig struct {
 
 type JWTConfig struct {
 	SecretKey     string `env:"JWT_SECRET,required"`
-	ExpiryMinutes int64  `env:"JWT_EXPIRY_MINUTES" envDefault:"60"`
+	ExpiryMinutes int64  `env:"JWT_EXPIRY_MINUTES" envDefault:"90"`
 }
 
 type AllConfig struct {

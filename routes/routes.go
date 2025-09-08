@@ -6,5 +6,5 @@ func SetUpRouter(server *gin.Engine) {
 	AppRoutes(server.Group("/app"))
 	UserRoutes(server.Group("/user"))
 	OtpRoutes(server.Group("/otp"))
-	UrlShorterRoutes(server.Group("/url"))
+	UrlShorterRoutes(server.Group("/"))
 }

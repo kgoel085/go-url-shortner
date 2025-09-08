@@ -1,7 +1,87 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"net/http"
+
+	"example.com/url-shortner/config"
+	"example.com/url-shortner/middleware"
+	"example.com/url-shortner/model"
+	"example.com/url-shortner/utils"
+	"github.com/gin-gonic/gin"
+)
 
 func UrlShorterRoutes(router *gin.RouterGroup) {
+	router.GET("/:code", handleGetUrls)
 
+	authenticated := router.Group("/url")
+
+	authenticated.Use(middleware.Authenticate)
+	authenticated.POST("/register", handleShortUrl)
+	authenticated.GET("/list", handleListUrls)
+}
+
+func handleListUrls(ctx *gin.Context) {
+	loggedInUser := ctx.GetInt64(config.JWT_LOGGED_IN_USER)
+	utils.Log.Info("Get URLs for user:", loggedInUser)
+
+	filters := model.GetUrlByUserFilter{}
+	status := ctx.Query("status")
+	if status != "" {
+		urlStatus := model.UrlStatus(status)
+		if !urlStatus.IsValid() {
+			utils.HandleValidationError(ctx, fmt.Errorf("Invalid URL status !"))
+			return
+		}
+		filters.Status = urlStatus
+	}
+
+	urls, urlsErr := model.GetUrlsByUser(loggedInUser, filters)
+	if urlsErr != nil {
+		utils.HandleValidationError(ctx, urlsErr)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"urls": urls,
+	})
+}
+
+func handleGetUrls(ctx *gin.Context) {
+	code := ctx.Param("code")
+	utils.Log.Info("Get URL by code:", code)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"short_url": utils.GetShortUrl(code),
+	})
+}
+
+func handleShortUrl(ctx *gin.Context) {
+	var createUrl model.CreateShortUrl
+	payloadErr := ctx.ShouldBindJSON(&createUrl)
+	if payloadErr != nil {
+		utils.HandleValidationError(ctx, payloadErr)
+		return
+	}
+
+	loggedInUser := ctx.GetInt64(config.JWT_LOGGED_IN_USER)
+	createUrl.UserID = loggedInUser
+
+	// Validate payload
+	url, urlErr := createUrl.Validate()
+	if urlErr != nil {
+		utils.HandleValidationError(ctx, urlErr)
+		return
+	}
+
+	urlErr = url.Save()
+	if urlErr != nil {
+		utils.HandleValidationError(ctx, urlErr)
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"message":   "Short URL created successfully",
+		"short_url": utils.GetShortUrl(url.Code),
+	})
 }
