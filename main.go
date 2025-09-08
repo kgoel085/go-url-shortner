@@ -14,13 +14,13 @@ import (
 
 func main() {
 	server := gin.Default()
-	utils.InitLogger()
 
-	config.LoadConfig()
-	db.InitRedis()
-	db.InitDB()
-	validator.LoadCustomBindings()
-	routes.SetUpRouter(server)
+	utils.InitLogger()             // Initialize logger
+	config.LoadConfig()            // Load ENV variables
+	db.InitRedis()                 // Initialize Redis client
+	db.InitDB()                    // Initialize Postgres client
+	validator.LoadCustomBindings() // Load custom validators
+	routes.SetUpRouter(server)     // Setup all routes
 
 	appUrl := fmt.Sprintf("%s:%s", config.Config.APP.Host, config.Config.APP.Port)
 	trustedProxies := strings.Split(config.Config.APP.TrustedProxies, ",")
