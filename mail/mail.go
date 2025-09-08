@@ -11,14 +11,17 @@ import (
 
 	"example.com/url-shortner/config"
 	"example.com/url-shortner/model"
+	"example.com/url-shortner/utils"
 	"github.com/jordan-wright/email"
 )
 
 type MailType string
 
+const SUPPORT_EMAIL = "support@support.com"
 const (
-	MailTypeSignUp  MailType = "sign_up"
-	MailTypeSendOTP MailType = "send_otp"
+	MailTypeSignUp        MailType = "sign_up"
+	MailTypeSendOTP       MailType = "send_otp"
+	MailTypeURLRegistered MailType = "url_registered"
 )
 
 type MailOptions interface{}
@@ -44,18 +47,31 @@ type SendOTPMailOptions struct {
 	IMG_BASE_URL  template.URL
 }
 
+type URLRegisteredMailOptions struct {
+	AppConfigOptions
+	USER_EMAIL    string
+	SHORT_URL     string
+	ORIGINAL_URL  string
+	SUPPORT_EMAIL string
+	IMG_BASE_URL  template.URL
+}
+
 //go:embed template/sign-up-success.html
 var signUpTemplate string
 
 //go:embed template/send-otp.html
 var sendOtpTemplate string
 
+//go:embed template/url-registered.html
+var urlRegisteredTemplate string
+
 //go:embed assets/logo.png
 var logoImg []byte
 
 var mailTemplates = map[MailType]string{
-	MailTypeSignUp:  signUpTemplate,
-	MailTypeSendOTP: sendOtpTemplate,
+	MailTypeSignUp:        signUpTemplate,
+	MailTypeSendOTP:       sendOtpTemplate,
+	MailTypeURLRegistered: urlRegisteredTemplate,
 }
 
 func logoBase64() string {
@@ -81,6 +97,13 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 		}
 		loginOtpOpts.APP_NAME = config.Config.APP.Name
 		opts = loginOtpOpts
+	case MailTypeURLRegistered:
+		urlRegisteredOpts, ok := opts.(URLRegisteredMailOptions)
+		if !ok {
+			return fmt.Errorf("opts must be URLRegisteredMailOptions for MailTypeURLRegistered")
+		}
+		urlRegisteredOpts.APP_NAME = config.Config.APP.Name
+		opts = urlRegisteredOpts
 	default:
 		return fmt.Errorf("unknown mail type: %s", mailType)
 	}
@@ -97,7 +120,7 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 	}
 
 	e := email.NewEmail()
-	e.From = fmt.Sprintf("%s <your@email.com>", config.Config.APP.Name)
+	e.From = fmt.Sprintf("%s <%s>", config.Config.APP.Name, SUPPORT_EMAIL)
 	e.To = []string{toEmail}
 	e.Subject = subject
 	e.HTML = buf.Bytes()
@@ -116,8 +139,8 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 func SendSignedUpUserMail(u model.User) error {
 	data := SignUpMailOptions{
 		USER_EMAIL:    u.Email,
-		LOGIN_URL:     "http://localhost/login",
-		SUPPORT_EMAIL: "support@support.com",
+		LOGIN_URL:     fmt.Sprintf("http://%s:%s/user/login", config.Config.APP.Host, config.Config.APP.Port),
+		SUPPORT_EMAIL: SUPPORT_EMAIL,
 		IMG_BASE_URL:  template.URL(logoBase64()),
 		AppConfigOptions: AppConfigOptions{
 			APP_NAME: config.Config.APP.Name,
@@ -130,7 +153,7 @@ func SendSignedUpUserMail(u model.User) error {
 func SendOtpUserMail(o model.Otp) error {
 	data := SendOTPMailOptions{
 		USER_EMAIL:    o.Key,
-		SUPPORT_EMAIL: "support@support.com",
+		SUPPORT_EMAIL: SUPPORT_EMAIL,
 		IMG_BASE_URL:  template.URL(logoBase64()),
 		ACTION_TYPE:   string(o.Action),
 		OTP_CODE:      o.OtpCode,
@@ -141,4 +164,24 @@ func SendOtpUserMail(o model.Otp) error {
 
 	subject := fmt.Sprintf("Your OTP to %s for %s", o.Action, config.Config.APP.Name)
 	return sendMail(MailTypeSendOTP, data, o.Key, subject)
+}
+
+func SendShortUrlUserMail(u model.Url) error {
+	user, userErr := model.GetUserById(u.UserID)
+	if userErr != nil {
+		return userErr
+	}
+
+	data := URLRegisteredMailOptions{
+		USER_EMAIL:    user.Email,
+		SHORT_URL:     utils.GetShortUrl(u.Code),
+		ORIGINAL_URL:  u.Url,
+		SUPPORT_EMAIL: SUPPORT_EMAIL,
+		IMG_BASE_URL:  template.URL(logoBase64()),
+		AppConfigOptions: AppConfigOptions{
+			APP_NAME: config.Config.APP.Name,
+		},
+	}
+
+	return sendMail(MailTypeURLRegistered, data, user.Email, "Your shortened URL is ready")
 }

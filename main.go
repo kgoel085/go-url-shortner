@@ -17,6 +17,7 @@ func main() {
 	utils.InitLogger()
 
 	config.LoadConfig()
+	db.InitRedis()
 	db.InitDB()
 	validator.LoadCustomBindings()
 	routes.SetUpRouter(server)
@@ -24,7 +25,6 @@ func main() {
 	appUrl := fmt.Sprintf("%s:%s", config.Config.APP.Host, config.Config.APP.Port)
 	trustedProxies := strings.Split(config.Config.APP.TrustedProxies, ",")
 	if len(trustedProxies) > 0 {
-		trustedProxies = append(trustedProxies, appUrl)
 
 		utils.Log.Info("Trusted proxies list: ", trustedProxies)
 		server.SetTrustedProxies(trustedProxies)

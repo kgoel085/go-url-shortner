@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"example.com/url-shortner/config"
+	"example.com/url-shortner/mail"
 	"example.com/url-shortner/middleware"
 	"example.com/url-shortner/model"
 	"example.com/url-shortner/utils"
@@ -80,7 +81,8 @@ func handleShortUrl(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	go mail.SendShortUrlUserMail(url)
+	ctx.JSON(http.StatusOK, gin.H{
 		"message":   "Short URL created successfully",
 		"short_url": utils.GetShortUrl(url.Code),
 	})

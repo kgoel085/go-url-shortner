@@ -39,12 +39,19 @@ type JWTConfig struct {
 	ExpiryMinutes int64  `env:"JWT_EXPIRY_MINUTES" envDefault:"90"`
 }
 
+type redisConfig struct {
+	Addr     string `env:"REDIS_ADDR,required" envDefault:"localhost:6379"`
+	Password string `env:"REDIS_PWD" envDefault:""`
+	DB       int    `env:"REDIS_DB" envDefault:"0"`
+}
+
 type AllConfig struct {
-	APP  appConfig
-	DB   dbConfig
-	SMTP smtpConfig
-	OTP  otpConfig
-	JWT  JWTConfig
+	APP   appConfig
+	DB    dbConfig
+	SMTP  smtpConfig
+	OTP   otpConfig
+	JWT   JWTConfig
+	REDIS redisConfig
 }
 
 var Config AllConfig

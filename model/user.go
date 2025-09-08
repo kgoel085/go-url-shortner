@@ -101,3 +101,23 @@ func getUserByEmail(email string) (User, error) {
 
 	return user, nil
 }
+
+func GetUserById(id int64) (User, error) {
+	var user User
+
+	query := `SELECT id, email, password, created_at FROM users WHERE id = $1`
+	row := db.DB.QueryRow(query, id)
+
+	logStr := fmt.Sprintf("Check User via ID: %s, %d", query, id)
+	utils.Log.Info(logStr)
+	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, fmt.Errorf("User not found")
+		}
+		return user, err
+	}
+
+	return user, nil
+}
