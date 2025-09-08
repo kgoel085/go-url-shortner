@@ -42,6 +42,29 @@ func createTables() {
 	createUserTable()
 	createOtpTable()
 	createUrlTable()
+	createAnalyticsTable()
+}
+
+func createAnalyticsTable() {
+	createAnalyticsTable := `
+	CREATE TABLE IF NOT EXISTS analytics (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		url_id BIGINT NOT NULL,
+		ip_address TEXT NOT NULL,
+		user_agent TEXT NOT NULL,
+		referrer TEXT,
+		created_at TIMESTAMP NOT NULL,
+		FOREIGN KEY (url_id) REFERENCES url(id)
+	);`
+
+	_, err := DB.Exec(createAnalyticsTable)
+	if err != nil {
+		errStr := fmt.Sprintf("Error creating analytics table: %v", err)
+		utils.Log.Error(errStr)
+		panic(errStr)
+	} else {
+		utils.Log.Info("Table `analytics` created or already exists")
+	}
 }
 
 func createOtpTable() {
@@ -97,6 +120,7 @@ func createUrlTable() {
 		status url_status NOT NULL DEFAULT 'active',
 		created_at TIMESTAMP NOT NULL,
 		expiry_at TIMESTAMP,
+		click_count BIGINT NOT NULL DEFAULT 0,
 		FOREIGN KEY (user_id) REFERENCES users(id)
 	);`
 

@@ -28,13 +28,14 @@ func (us UrlStatus) IsValid() bool {
 }
 
 type Url struct {
-	ID        int64     `json:"id" binding:"required"`
-	UserID    int64     `json:"user_id" binding:"required"`
-	Url       string    `json:"url" binding:"required,http_url"`
-	Code      string    `json:"code" binding:"required,alphanum"`
-	Status    UrlStatus `json:"status" binding:"required"`
-	CreatedAt time.Time `json:"created_at" binding:"required"`
-	ExpiryAt  time.Time `json:"expires_at"`
+	ID         int64     `json:"id" binding:"required"`
+	UserID     int64     `json:"user_id" binding:"required"`
+	Url        string    `json:"url" binding:"required,http_url"`
+	Code       string    `json:"code" binding:"required,alphanum"`
+	Status     UrlStatus `json:"status" binding:"required"`
+	CreatedAt  time.Time `json:"created_at" binding:"required"`
+	ClickCount int64     `json:"click_count"`
+	ExpiryAt   time.Time `json:"expires_at"`
 }
 
 type CreateShortUrl struct {

@@ -73,6 +73,19 @@ func handleGetUrls(ctx *gin.Context) {
 		return
 	}
 
+	// Log analytics data
+	analytics := model.Analytics{
+		UrlID:     url.ID,
+		IPAddress: ctx.ClientIP(),
+		UserAgent: ctx.Request.UserAgent(),
+		Referrer:  ctx.Request.Referer(),
+	}
+	go func() {
+		if err := analytics.Save(); err != nil {
+			utils.Log.Error("Failed to save analytics data:", err)
+		}
+	}()
+
 	utils.Log.Info("Redirecting to URL:", url.Url)
 	ctx.Redirect(http.StatusPermanentRedirect, url.Url)
 }
