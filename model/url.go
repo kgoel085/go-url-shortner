@@ -53,6 +53,44 @@ type UrlWithShortCode struct {
 	ShortUrl string `json:"short_url"`
 }
 
+func GetUrlByCode(code string) (Url, error) {
+	var url Url
+	query := `SELECT id, user_id, url, code, status, created_at, expiry_at FROM url WHERE code=$1`
+
+	logStr := fmt.Sprintf("Get URL by Code from DB : %s, Code: %s, Timestamp: %s", query, code, time.Now().UTC())
+	utils.Log.Info(logStr)
+
+	rowErr := db.DB.QueryRow(query, code).Scan(&url.ID, &url.UserID, &url.Url, &url.Code, &url.Status, &url.CreatedAt, &url.ExpiryAt)
+	if rowErr != nil {
+		if rowErr == sql.ErrNoRows {
+			return url, fmt.Errorf("no URL found for the provided code")
+		}
+		errStr := fmt.Sprintf("Error while trying to get URL by code - %s !", rowErr.Error())
+		return url, fmt.Errorf(errStr)
+	}
+
+	return url, nil
+}
+
+func (u *Url) UpdateStatus(status UrlStatus) error {
+	if !status.IsValid() {
+		return fmt.Errorf("invalid URL status")
+	}
+	query := `UPDATE url SET status=$1 WHERE id=$2`
+
+	logStr := fmt.Sprintf("Update URL status in DB : %s, ID: %d, New Status: %s, Timestamp: %s", query, u.ID, status, time.Now().UTC())
+	utils.Log.Info(logStr)
+
+	_, execErr := db.DB.Exec(query, u.Status, u.ID)
+	if execErr != nil {
+		errStr := fmt.Sprintf("Error while trying to update URL status - %s !", execErr.Error())
+		return fmt.Errorf(errStr)
+	}
+
+	u.Status = status
+	return nil
+}
+
 func GetUrlsByUser(userID int64, filter GetUrlByUserFilter) ([]UrlWithShortCode, error) {
 	var urls []UrlWithShortCode
 

@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"example.com/url-shortner/config"
 	"example.com/url-shortner/mail"
@@ -16,8 +17,8 @@ func UrlShorterRoutes(router *gin.RouterGroup) {
 	router.GET("/:code", handleGetUrls)
 
 	authenticated := router.Group("/url")
-
 	authenticated.Use(middleware.Authenticate)
+
 	authenticated.POST("/register", handleShortUrl)
 	authenticated.GET("/list", handleListUrls)
 }
@@ -52,9 +53,28 @@ func handleGetUrls(ctx *gin.Context) {
 	code := ctx.Param("code")
 	utils.Log.Info("Get URL by code:", code)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"short_url": utils.GetShortUrl(code),
-	})
+	url, urlErr := model.GetUrlByCode(code)
+	if urlErr != nil {
+		utils.HandleValidationError(ctx, urlErr)
+		return
+	}
+
+	if url.Status != model.UrlStatusActive {
+		utils.HandleValidationError(ctx, fmt.Errorf("URL is not active"))
+		return
+	}
+
+	if !url.ExpiryAt.IsZero() && url.ExpiryAt.Before(time.Now()) {
+		updateErr := url.UpdateStatus(model.UrlStatusExpired)
+		if updateErr != nil {
+			utils.Log.Error("Failed to update URL status to expired:", updateErr)
+		}
+		utils.HandleValidationError(ctx, fmt.Errorf("URL has expired"))
+		return
+	}
+
+	utils.Log.Info("Redirecting to URL:", url.Url)
+	ctx.Redirect(http.StatusPermanentRedirect, url.Url)
 }
 
 func handleShortUrl(ctx *gin.Context) {
