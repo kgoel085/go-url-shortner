@@ -1,6 +1,9 @@
 # URL Shortener
 
-A robust URL shortener service built with Go, Gin, PostgreSQL, and Redis. This project provides a scalable API for shortening URLs, tracking usage, and managing links securely.
+A robust URL shortener service built with Go, Gin, PostgreSQL, and Redis.  
+This project provides a scalable API for shortening URLs, tracking usage, and managing links securely.
+
+---
 
 ## Features
 
@@ -13,6 +16,8 @@ A robust URL shortener service built with Go, Gin, PostgreSQL, and Redis. This p
 - **Configurable:** Environment-based configuration for easy deployment.
 - **Logging:** Structured logging for debugging and monitoring.
 - **Secure:** Trusted proxies support for correct client IP handling.
+
+---
 
 ## Project Structure
 
@@ -36,31 +41,32 @@ url-shortner/
 - **utils:** Utility functions, including logging.
 - **validator:** Custom input validators for request data.
 
+---
+
 ## Flow Overview
 
 1. **Startup:**
-
-- Logger initialized (`utils.InitLogger`)
-- Configuration loaded from environment (`config.LoadConfig`)
-- Redis and PostgreSQL clients initialized (`db.InitRedis`, `db.InitDB`)
-- Custom validators registered (`validator.LoadCustomBindings`)
-- API routes set up (`routes.SetUpRouter`)
-- Trusted proxies configured for security
-- Gin server started
+    - Logger initialized (`utils.InitLogger`)
+    - Configuration loaded from environment (`config.LoadConfig`)
+    - Redis and PostgreSQL clients initialized (`db.InitRedis`, `db.InitDB`)
+    - Custom validators registered (`validator.LoadCustomBindings`)
+    - API routes set up (`routes.SetUpRouter`)
+    - Trusted proxies configured for security
+    - Gin server started
 
 2. **Shorten URL:**
-
-- User sends a POST request with a long URL.
-- Input validated using custom validators.
-- Short URL generated and stored in PostgreSQL.
-- Mapping cached in Redis for fast access.
+    - User sends a POST request with a long URL.
+    - Input validated using custom validators.
+    - Short URL generated and stored in PostgreSQL.
+    - Mapping cached in Redis for fast access.
 
 3. **Redirect:**
+    - User accesses a short URL.
+    - Service looks up the original URL in Redis (fallback to PostgreSQL).
+    - Redirects user to the original URL.
+    - Usage statistics updated.
 
-- User accesses a short URL.
-- Service looks up the original URL in Redis (fallback to PostgreSQL).
-- Redirects user to the original URL.
-- Usage statistics updated.
+---
 
 ## Configuration
 
@@ -70,6 +76,8 @@ Set environment variables for:
 - `TRUSTED_PROXIES`: Comma-separated list of trusted proxy IPs
 - Database and Redis connection details
 
+---
+
 ## Running Locally
 
 ```bash
@@ -77,11 +85,33 @@ go mod tidy
 go run main.go
 ```
 
+---
+
+## Flows
+
+Visual flow diagrams for the main actions in the URL Shortener service:
+
+### User Sign Up
+![User Sign Up Flow](flows/user-signup.png)
+
+### User Login
+![User Login Flow](flows/user-login.png)
+
+### Register Short URL
+![Register URL Flow](flows/register-url.png)
+
+### Visit Short URL
+![Visit Short URL Flow](flows/visit-url.png)
+
+---
+
 ## API Endpoints
 
-- `POST /shorten`: Shorten a new URL
-- `GET /:shortUrl`: Redirect to the original URL
-- `GET /stats/:shortUrl`: Get analytics for a short URL
+- `POST /shorten` — Shorten a new URL
+- `GET /:shortUrl` — Redirect to the original URL
+- `GET /stats/:shortUrl` — Get analytics for a short URL
+
+---
 
 ## Dependencies
 
@@ -89,6 +119,8 @@ go run main.go
 - [Redis](https://github.com/go-redis/redis): Caching and rate limiting
 - [PostgreSQL](https://github.com/lib/pq): Persistent storage
 - Custom packages for config, validation, logging, and routing
+
+---
 
 ## License
 
