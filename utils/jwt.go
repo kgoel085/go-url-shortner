@@ -38,8 +38,7 @@ func ValidateJWT(token string) (int64, error) {
 	})
 
 	if err != nil {
-		errMsg := fmt.Sprintf("Could not parse token - %s!", err.Error())
-		return 0, fmt.Errorf(errMsg)
+		return 0, fmt.Errorf("Could not parse token - %s!", err.Error())
 	}
 
 	if !parsedToken.Valid {
