@@ -49,7 +49,7 @@ func (u *User) Save() error {
 	hashedPwd, hashPwdErr := utils.HashPwd(u.Password)
 	if hashPwdErr != nil {
 		errStr := fmt.Sprintf("Error while trying to hash - %s !", hashPwdErr.Error())
-		return fmt.Errorf(errStr)
+		return fmt.Errorf("%s", errStr)
 	}
 
 	query := `INSERT INTO users (email, password, created_at) VALUES ($1, $2, $3) RETURNING id, created_at`

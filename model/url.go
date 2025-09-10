@@ -75,7 +75,7 @@ func GetUrlByCode(code string) (Url, error) {
 			return url, fmt.Errorf("no URL found for the provided code")
 		}
 		errStr := fmt.Sprintf("Error while trying to get URL by code - %s !", rowErr.Error())
-		return url, fmt.Errorf(errStr)
+		return url, fmt.Errorf("%s", errStr)
 	}
 
 	return url, nil
@@ -93,7 +93,7 @@ func (u *Url) UpdateStatus(status UrlStatus) error {
 	_, execErr := db.DB.Exec(query, u.Status, u.ID)
 	if execErr != nil {
 		errStr := fmt.Sprintf("Error while trying to update URL status - %s !", execErr.Error())
-		return fmt.Errorf(errStr)
+		return fmt.Errorf("%s", errStr)
 	}
 
 	u.Status = status
@@ -181,7 +181,7 @@ func (u *Url) Save() error {
 	rowErr := db.DB.QueryRow(query, u.UserID, u.Url, u.Code, u.Status, u.CreatedAt, u.ExpiryAt).Scan(&u.ID, &u.CreatedAt)
 	if rowErr != nil {
 		errStr := fmt.Sprintf("Error while trying to save URL - %s !", rowErr.Error())
-		return fmt.Errorf(errStr)
+		return fmt.Errorf("%s", errStr)
 	}
 
 	return nil
@@ -200,7 +200,7 @@ func getUrlByCode(code string) (Url, error) {
 			return url, fmt.Errorf("no active URL found for the provided code")
 		}
 		errStr := fmt.Sprintf("Error while trying to get URL by code - %s !", rowErr.Error())
-		return url, fmt.Errorf(errStr)
+		return url, fmt.Errorf("%s", errStr)
 	}
 
 	return url, nil

@@ -173,7 +173,7 @@ func (otp *Otp) checkExistingOtp() error {
 		// If OTP was sent within last specified minute, do not send another one
 		if time.Since(existingOtp.CreatedAt) < time.Minute*time.Duration(config.Config.OTP.ExpiryMinutes) {
 			errStr := fmt.Sprintf("OTP already sent recently at %s. Please wait before requesting a new one.", existingOtp.CreatedAt.Format(config.TIME_FORMAT))
-			return fmt.Errorf(errStr)
+			return fmt.Errorf("%s", errStr)
 		} else {
 			// Expire the previous OTP
 			_, updateErr := db.DB.Exec("UPDATE otp SET status=$1 WHERE id=$2", OtpStatusExpire, existingOtp.ID)

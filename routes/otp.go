@@ -82,6 +82,6 @@ func handleSendOTP(ctx *gin.Context) {
 	go mail.SendOtpUserMail(otp)
 	ctx.JSON(http.StatusOK, model.APIResponse{
 		Message: "OTP sent successfully",
-		Data:    model.SendOTPResponse{ID: string(otp.ID), Token: otp.Token},
+		Data:    model.SendOTPResponse{ID: fmt.Sprintf("%d", otp.ID), Token: otp.Token},
 	})
 }

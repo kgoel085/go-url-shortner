@@ -28,7 +28,7 @@ func (a *Analytics) Save() error {
 
 	if rowErr != nil {
 		errStr := fmt.Sprintf("Error while trying to save analytics - %s !", rowErr.Error())
-		return fmt.Errorf(errStr)
+		return fmt.Errorf("%s", errStr)
 	}
 
 	// Increment click count in url table
@@ -36,7 +36,7 @@ func (a *Analytics) Save() error {
 	_, updateErr := db.DB.Exec(updateQuery, a.UrlID)
 	if updateErr != nil {
 		errStr := fmt.Sprintf("Error while trying to update click count - %s !", updateErr.Error())
-		return fmt.Errorf(errStr)
+		return fmt.Errorf("%s", errStr)
 	}
 
 	return nil

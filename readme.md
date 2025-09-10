@@ -39,25 +39,28 @@ url-shortner/
 ## Flow Overview
 
 1. **Startup:**
-  - Logger initialized (`utils.InitLogger`)
-  - Configuration loaded from environment (`config.LoadConfig`)
-  - Redis and PostgreSQL clients initialized (`db.InitRedis`, `db.InitDB`)
-  - Custom validators registered (`validator.LoadCustomBindings`)
-  - API routes set up (`routes.SetUpRouter`)
-  - Trusted proxies configured for security
-  - Gin server started
+
+- Logger initialized (`utils.InitLogger`)
+- Configuration loaded from environment (`config.LoadConfig`)
+- Redis and PostgreSQL clients initialized (`db.InitRedis`, `db.InitDB`)
+- Custom validators registered (`validator.LoadCustomBindings`)
+- API routes set up (`routes.SetUpRouter`)
+- Trusted proxies configured for security
+- Gin server started
 
 2. **Shorten URL:**
-  - User sends a POST request with a long URL.
-  - Input validated using custom validators.
-  - Short URL generated and stored in PostgreSQL.
-  - Mapping cached in Redis for fast access.
+
+- User sends a POST request with a long URL.
+- Input validated using custom validators.
+- Short URL generated and stored in PostgreSQL.
+- Mapping cached in Redis for fast access.
 
 3. **Redirect:**
-  - User accesses a short URL.
-  - Service looks up the original URL in Redis (fallback to PostgreSQL).
-  - Redirects user to the original URL.
-  - Usage statistics updated.
+
+- User accesses a short URL.
+- Service looks up the original URL in Redis (fallback to PostgreSQL).
+- Redirects user to the original URL.
+- Usage statistics updated.
 
 ## Configuration
 
