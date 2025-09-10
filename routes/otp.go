@@ -15,6 +15,15 @@ func OtpRoutes(router *gin.RouterGroup) {
 	router.POST("/verify", handleVerifyOTP)
 }
 
+// @Summary      Verify OTP
+// @Description  Verifies the OTP code sent to the user.
+// @Tags         OTP
+// @Accept       json
+// @Produce      json
+// @Param        otpVerifyRequest  body  model.VerifyOtp  true  "OTP verify payload"
+// @Success      200  {object}  model.APIResponse "Success" "Example: {\"message\": \"OTP verified successfully\"}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Invalid OTP code\"}"
+// @Router       /otp/verify [post]
 func handleVerifyOTP(ctx *gin.Context) {
 	var otpVerifyRequest model.VerifyOtp
 	payloadErr := ctx.ShouldBindBodyWithJSON(&otpVerifyRequest)
@@ -30,11 +39,20 @@ func handleVerifyOTP(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "OTP verified successfully",
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Message: "OTP verified successfully",
 	})
 }
 
+// @Summary      Send OTP
+// @Description  Sends an OTP to the user for verification.
+// @Tags         OTP
+// @Accept       json
+// @Produce      json
+// @Param        otpRequest  body  model.SendOtp  true  "OTP request payload"
+// @Success      200  {object}  model.APIResponse{data=model.SendOTPResponse} "Success" "Example: {\"message\": \"OTP sent successfully\", \"data\": {\"id\": \"123\", \"token\": \"abcde12345\"}}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Invalid OTP type or action type\"}"
+// @Router       /otp/send [post]
 func handleSendOTP(ctx *gin.Context) {
 	var otpRequest model.SendOtp
 	payloadErr := ctx.ShouldBindBodyWithJSON(&otpRequest)
@@ -62,9 +80,8 @@ func handleSendOTP(ctx *gin.Context) {
 
 	// Send Email
 	go mail.SendOtpUserMail(otp)
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "OTP sent successfully",
-		"id":      otp.ID,
-		"token":   otp.Token,
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Message: "OTP sent successfully",
+		Data:    model.SendOTPResponse{ID: string(otp.ID), Token: otp.Token},
 	})
 }

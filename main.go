@@ -12,6 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	server := gin.Default()
 

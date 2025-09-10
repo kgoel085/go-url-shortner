@@ -54,6 +54,14 @@ type UrlWithShortCode struct {
 	ShortUrl string `json:"short_url"`
 }
 
+type GetUrlsByUserResponse struct {
+	Urls []UrlWithShortCode `json:"urls"`
+}
+
+type CreateShortUrlResponse struct {
+	ShortUrl string `json:"short_url"`
+}
+
 func GetUrlByCode(code string) (Url, error) {
 	var url Url
 	query := `SELECT id, user_id, url, code, status, created_at, expiry_at FROM url WHERE code=$1`

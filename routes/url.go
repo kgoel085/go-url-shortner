@@ -23,6 +23,16 @@ func UrlShorterRoutes(router *gin.RouterGroup) {
 	authenticated.GET("/list", handleListUrls)
 }
 
+// @Summary      List User URLs
+// @Description  Get all shortened URLs for the authenticated user.
+// @Security     BearerAuth
+// @Tags         URL
+// @Accept       json
+// @Produce      json
+// @Param        status  query  string  false  "Filter by URL status"
+// @Success      200  {object}  model.APIResponse{data=model.GetUrlsByUserResponse} "Success" "Example: {\"message\": \"URLs fetched successfully\", \"data\": {\"urls\": [{\"code\": \"abc123\", \"url\": \"https://example.com\"}]}}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Invalid URL status !\"}"
+// @Router       /url/list [get]
 func handleListUrls(ctx *gin.Context) {
 	loggedInUser := ctx.GetInt64(config.JWT_LOGGED_IN_USER)
 	utils.Log.Info("Get URLs for user:", loggedInUser)
@@ -44,11 +54,21 @@ func handleListUrls(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"urls": urls,
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Data:    model.GetUrlsByUserResponse{Urls: urls},
+		Message: "URLs fetched successfully",
 	})
 }
 
+// @Summary      Redirect Short URL
+// @Description  Redirects to the original URL using the short code.
+// @Tags         URL
+// @Accept       json
+// @Produce      json
+// @Param        code  path  string  true  "Short URL code"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"URL is not active\"}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"URL has expired\"}"
+// @Router       /{code} [get]
 func handleGetUrls(ctx *gin.Context) {
 	code := ctx.Param("code")
 	utils.Log.Info("Get URL by code:", code)
@@ -90,6 +110,16 @@ func handleGetUrls(ctx *gin.Context) {
 	ctx.Redirect(http.StatusPermanentRedirect, url.Url)
 }
 
+// @Summary      Register Short URL
+// @Description  Create a new short URL for the authenticated user.
+// @Security     BearerAuth
+// @Tags         URL
+// @Accept       json
+// @Produce      json
+// @Param        createUrl  body  model.CreateShortUrl  true  "Create short URL payload"
+// @Success      200  {object}  model.APIResponse{data=model.CreateShortUrlResponse} "Success" "Example: {\"message\": \"Short URL created successfully\", \"data\": {\"short_url\": \"https://short.ly/abc123\"}}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Request failed\", \"errors\": [{\"field\": \"url\", \"error\": \"invalid URL\"}]}"
+// @Router       /url/register [post]
 func handleShortUrl(ctx *gin.Context) {
 	var createUrl model.CreateShortUrl
 	payloadErr := ctx.ShouldBindJSON(&createUrl)
@@ -115,8 +145,8 @@ func handleShortUrl(ctx *gin.Context) {
 	}
 
 	go mail.SendShortUrlUserMail(url)
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":   "Short URL created successfully",
-		"short_url": utils.GetShortUrl(url.Code),
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Message: "Short URL created successfully",
+		Data:    model.CreateShortUrlResponse{ShortUrl: utils.GetShortUrl(url.Code)},
 	})
 }

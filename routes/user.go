@@ -16,6 +16,15 @@ func UserRoutes(router *gin.RouterGroup) {
 	router.POST("/verify-credentials", handleVerifyCredentials)
 }
 
+// @Summary      User Login
+// @Description  Login with email, password, and OTP. Returns JWT token on success.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        loginUser  body  model.LoginUser  true  "Login payload"
+// @Success      200  {object}  model.APIResponse{data=model.LoginUserResponse} "Success" "Example: {\"message\": \"User logged in successfully !\", \"data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Request failed\", \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}"
+// @Router       /login [post]
 func handleLogin(ctx *gin.Context) {
 	var loginUser model.LoginUser
 	payloadErr := ctx.ShouldBindJSON(&loginUser)
@@ -57,12 +66,21 @@ func handleLogin(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "User logged in successfully !",
-		"token":   token,
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Message: "User logged in successfully !",
+		Data:    model.LoginUserResponse{Token: token},
 	})
 }
 
+// @Summary      Verify User Credentials
+// @Description  Verifies user email and password.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        userCreds  body  model.UserCredentials  true  "User credentials payload"
+// @Success      200  {object}  model.APIResponse "Success" "Example: {\"message\": \"User credentials are valid.\"}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Request failed\", \"errors\": [{\"field\": \"password\", \"error\": \"password too weak\"}]}"
+// @Router       /verify-credentials [post]
 func handleVerifyCredentials(ctx *gin.Context) {
 	var userCreds model.UserCredentials
 	payloadErr := ctx.ShouldBindBodyWithJSON(&userCreds)
@@ -84,11 +102,20 @@ func handleVerifyCredentials(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "User credentials are valid.",
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Message: "User credentials are valid.",
 	})
 }
 
+// @Summary      User Sign Up
+// @Description  Register a new user with email, password, and OTP verification.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        userToSignUp  body  model.SignUpUser  true  "Sign up payload"
+// @Success      201  {object}  model.APIResponse "Success" "Example: {\"message\": \"User signed up successfully !\"}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Request failed\", \"errors\": [{\"field\": \"otp_code\", \"error\": \"invalid OTP\"}]}"
+// @Router       /sign-up [post]
 func handleSignUp(ctx *gin.Context) {
 	var userToSignUp model.SignUpUser
 	payloadErr := ctx.ShouldBindBodyWithJSON(&userToSignUp)
@@ -131,7 +158,7 @@ func handleSignUp(ctx *gin.Context) {
 	utils.Log.Info("User signed up successfully: ", user.Email)
 
 	go mail.SendSignedUpUserMail(user)
-	ctx.JSON(http.StatusCreated, gin.H{
-		"message": "User signed up successfully !",
+	ctx.JSON(http.StatusCreated, model.APIResponse{
+		Message: "User signed up successfully !",
 	})
 }

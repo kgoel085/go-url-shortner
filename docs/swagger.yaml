@@ -1,0 +1,451 @@
+definitions:
+  model.APIResponse:
+    properties:
+      data: {}
+      message:
+        example: User logged in successfully !
+        type: string
+    type: object
+  model.CreateShortUrl:
+    properties:
+      code:
+        type: string
+      expires_at:
+        type: string
+      url:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - url
+    type: object
+  model.CreateShortUrlResponse:
+    properties:
+      short_url:
+        type: string
+    type: object
+  model.GetUrlsByUserResponse:
+    properties:
+      urls:
+        items:
+          $ref: '#/definitions/model.UrlWithShortCode'
+        type: array
+    type: object
+  model.LoginUser:
+    properties:
+      email:
+        type: string
+      otp_code:
+        type: string
+      otp_token:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - otp_code
+    - otp_token
+    - password
+    type: object
+  model.LoginUserResponse:
+    properties:
+      token:
+        example: JWT Token
+        type: string
+    type: object
+  model.OtpActionType:
+    enum:
+    - login
+    - signup
+    - reset_password
+    type: string
+    x-enum-varnames:
+    - OtpActionTypeLogin
+    - OtpActionTypeSignUp
+    - OtpActionTypeResetPassword
+  model.OtpType:
+    enum:
+    - email
+    - phone
+    type: string
+    x-enum-varnames:
+    - OtpTypeEmail
+    - OtpTypePhone
+  model.SendOTPResponse:
+    properties:
+      id:
+        type: string
+      token:
+        type: string
+    type: object
+  model.SendOtp:
+    properties:
+      action:
+        $ref: '#/definitions/model.OtpActionType'
+      key:
+        type: string
+      type:
+        $ref: '#/definitions/model.OtpType'
+    required:
+    - action
+    - key
+    - type
+    type: object
+  model.SignUpUser:
+    properties:
+      email:
+        type: string
+      otp_code:
+        type: string
+      otp_token:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - otp_code
+    - otp_token
+    - password
+    type: object
+  model.UrlStatus:
+    enum:
+    - active
+    - inactive
+    - deleted
+    - expired
+    type: string
+    x-enum-varnames:
+    - UrlStatusActive
+    - UrlStatusInactive
+    - UrlStatusDeleted
+    - UrlStatusExpired
+  model.UrlWithShortCode:
+    properties:
+      click_count:
+        type: integer
+      code:
+        type: string
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      short_url:
+        type: string
+      status:
+        $ref: '#/definitions/model.UrlStatus'
+      url:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - code
+    - created_at
+    - id
+    - status
+    - url
+    - user_id
+    type: object
+  model.UserCredentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  model.VerifyOtp:
+    properties:
+      action:
+        type: string
+      otp:
+        type: string
+      token:
+        type: string
+    required:
+    - action
+    - otp
+    - token
+    type: object
+  utils.ErrorDetail:
+    properties:
+      error:
+        example: invalid email
+        type: string
+      field:
+        example: email
+        type: string
+    type: object
+  utils.ErrorResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/utils.ErrorDetail'
+        type: array
+      message:
+        example: Request failed
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /{code}:
+    get:
+      consumes:
+      - application/json
+      description: Redirects to the original URL using the short code.
+      parameters:
+      - description: Short URL code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"URL has expired\"}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Redirect Short URL
+      tags:
+      - URL
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email, password, and OTP. Returns JWT token on success.
+      parameters:
+      - description: Login payload
+        in: body
+        name: loginUser
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"User logged in successfully
+            !\", \"data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.LoginUserResponse'
+              type: object
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: User Login
+      tags:
+      - Auth
+  /otp/send:
+    post:
+      consumes:
+      - application/json
+      description: Sends an OTP to the user for verification.
+      parameters:
+      - description: OTP request payload
+        in: body
+        name: otpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.SendOtp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"OTP sent successfully\",
+            \"data\": {\"id\": \"123\", \"token\": \"abcde12345\"}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.SendOTPResponse'
+              type: object
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Invalid OTP type
+            or action type\"}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Send OTP
+      tags:
+      - OTP
+  /otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the OTP code sent to the user.
+      parameters:
+      - description: OTP verify payload
+        in: body
+        name: otpVerifyRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.VerifyOtp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"OTP verified successfully\"}'
+          schema:
+            $ref: '#/definitions/model.APIResponse'
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Invalid OTP code\"}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Verify OTP
+      tags:
+      - OTP
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: Health check endpoint. Returns "pong" if the server is running.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"pong\"}'
+          schema:
+            $ref: '#/definitions/model.APIResponse'
+      summary: Ping
+      tags:
+      - App
+  /sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email, password, and OTP verification.
+      parameters:
+      - description: Sign up payload
+        in: body
+        name: userToSignUp
+        required: true
+        schema:
+          $ref: '#/definitions/model.SignUpUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Success" "Example: {\"message\": \"User signed up successfully
+            !\"}'
+          schema:
+            $ref: '#/definitions/model.APIResponse'
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"otp_code\", \"error\": \"invalid OTP\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: User Sign Up
+      tags:
+      - Auth
+  /url/list:
+    get:
+      consumes:
+      - application/json
+      description: Get all shortened URLs for the authenticated user.
+      parameters:
+      - description: Filter by URL status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"URLs fetched successfully\",
+            \"data\": {\"urls\": [{\"code\": \"abc123\", \"url\": \"https://example.com\"}]}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.GetUrlsByUserResponse'
+              type: object
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Invalid URL status
+            !\"}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List User URLs
+      tags:
+      - URL
+  /url/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new short URL for the authenticated user.
+      parameters:
+      - description: Create short URL payload
+        in: body
+        name: createUrl
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateShortUrl'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"Short URL created successfully\",
+            \"data\": {\"short_url\": \"https://short.ly/abc123\"}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.CreateShortUrlResponse'
+              type: object
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"url\", \"error\": \"invalid URL\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register Short URL
+      tags:
+      - URL
+  /verify-credentials:
+    post:
+      consumes:
+      - application/json
+      description: Verifies user email and password.
+      parameters:
+      - description: User credentials payload
+        in: body
+        name: userCreds
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserCredentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"User credentials are valid.\"}'
+          schema:
+            $ref: '#/definitions/model.APIResponse'
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"password\", \"error\": \"password too weak\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Verify User Credentials
+      tags:
+      - Auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

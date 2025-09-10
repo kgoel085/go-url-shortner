@@ -36,6 +36,10 @@ type LoginUser struct {
 	UserOtp
 }
 
+type LoginUserResponse struct {
+	Token string `json:"token" example:"JWT Token"`
+}
+
 func (u *User) Save() error {
 	userByEmail, userByEmailErr := getUserByEmail(u.Email)
 	if userByEmail.Email == u.Email || userByEmailErr == nil {

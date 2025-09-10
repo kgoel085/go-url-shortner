@@ -55,6 +55,11 @@ type VerifyOtp struct {
 	Action string `json:"action" binding:"required"`
 }
 
+type SendOTPResponse struct {
+	ID    string `json:"id"`
+	Token string `json:"token"`
+}
+
 func (otpVerify *VerifyOtp) Verify() error {
 	return otpVerify.verifyInternal(false)
 }

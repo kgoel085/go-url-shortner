@@ -32,6 +32,7 @@ type appConfig struct {
 	Host           string `env:"HOST,required" envDefault:""`
 	Port           string `env:"PORT,required" envDefault:"8000"`
 	TrustedProxies string `env:"TRUSTED_ORIGINS" envDefault:""`
+	EnableHTTPS    bool   `env:"ENABLE_HTTPS" envDefault:"false"`
 }
 
 type JWTConfig struct {

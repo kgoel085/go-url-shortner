@@ -10,6 +10,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ErrorDetail represents a single field error
+type ErrorDetail struct {
+	Field string `json:"field" example:"email"`
+	Error string `json:"error" example:"invalid email"`
+}
+
+// ErrorResponse is a generic error response for API errors
+type ErrorResponse struct {
+	Message string        `json:"message" example:"Request failed"`
+	Errors  []ErrorDetail `json:"errors,omitempty"`
+}
+
 func HandleValidationError(ctx *gin.Context, err error) {
 	if err == nil {
 		return
@@ -18,11 +30,11 @@ func HandleValidationError(ctx *gin.Context, err error) {
 	var ve validator.ValidationErrors
 
 	if errors.As(err, &ve) {
-		out := make([]map[string]string, len(ve))
+		out := make([]ErrorDetail, len(ve))
 		for i, fe := range ve {
-			out[i] = map[string]string{
-				"field": fe.Field(),
-				"error": customValidator.MsgForTag(fe),
+			out[i] = ErrorDetail{
+				Field: fe.Field(),
+				Error: customValidator.MsgForTag(fe),
 			}
 		}
 
@@ -31,9 +43,9 @@ func HandleValidationError(ctx *gin.Context, err error) {
 			"error": out,
 		}).Error("Request failed")
 
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "Request failed",
-			"errors":  out,
+		ctx.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Request failed",
+			Errors:  out,
 		})
 		return
 	}
@@ -44,7 +56,7 @@ func HandleValidationError(ctx *gin.Context, err error) {
 		"error": err.Error(),
 	}).Error("Request failed")
 
-	ctx.JSON(http.StatusBadRequest, gin.H{
-		"message": err.Error(),
+	ctx.JSON(http.StatusBadRequest, ErrorResponse{
+		Message: err.Error(),
 	})
 }
