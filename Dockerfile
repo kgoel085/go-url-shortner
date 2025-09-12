@@ -24,17 +24,8 @@ COPY --from=builder /app/url-shortner .
 # Install 'grep' for extracting port from .env
 RUN apk add --no-cache grep
 
-# Extract PORT from .env and expose it
-RUN export PORT=$(grep -E '^PORT=' .env | cut -d '=' -f2) && \
-  echo "Exposing port $PORT" && \
-  [ -n "$PORT" ] && echo "EXPOSE $PORT" > /app/Dockerfile.expose
 
-# Dynamically expose the port at runtime
-# (Docker doesn't support dynamic EXPOSE, so use default 8001 if not set)
-ARG PORT=8001
-ENV PORT=${PORT}
-
-EXPOSE ${PORT}
+EXPOSE 8001
 
 # Run the application
 CMD ["./url-shortner"]
