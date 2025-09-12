@@ -17,7 +17,7 @@ func AppRoutes(router *gin.RouterGroup) {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  model.APIResponse "Success" "Example: {\"message\": \"pong\"}"
-// @Router       /ping [get]
+// @Router       /app/ping [get]
 func handlePing(c *gin.Context) {
 	c.JSON(http.StatusOK, model.APIResponse{
 		Message: "pong",

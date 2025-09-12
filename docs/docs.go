@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/login": {
-            "post": {
-                "description": "Login with email, password, and OTP. Returns JWT token on success.",
+        "/app/ping": {
+            "get": {
+                "description": "Health check endpoint. Returns \"pong\" if the server is running.",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,43 +25,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "App"
                 ],
-                "summary": "User Login",
-                "parameters": [
-                    {
-                        "description": "Login payload",
-                        "name": "loginUser",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.LoginUser"
-                        }
-                    }
-                ],
+                "summary": "Ping",
                 "responses": {
                     "200": {
-                        "description": "Success\" \"Example: {\\\"message\\\": \\\"User logged in successfully !\\\", \\\"data\\\": {\\\"token\\\": \\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\\\"}}",
+                        "description": "Success\" \"Example: {\\\"message\\\": \\\"pong\\\"}",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/model.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.LoginUserResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Validation error\" \"Example: {\\\"message\\\": \\\"Request failed\\\", \\\"errors\\\": [{\\\"field\\\": \\\"email\\\", \\\"error\\\": \\\"invalid email\\\"}]}",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/model.APIResponse"
                         }
                     }
                 }
@@ -152,69 +123,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Validation error\" \"Example: {\\\"message\\\": \\\"Invalid OTP code\\\"}",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/ping": {
-            "get": {
-                "description": "Health check endpoint. Returns \"pong\" if the server is running.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "App"
-                ],
-                "summary": "Ping",
-                "responses": {
-                    "200": {
-                        "description": "Success\" \"Example: {\\\"message\\\": \\\"pong\\\"}",
-                        "schema": {
-                            "$ref": "#/definitions/model.APIResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/sign-up": {
-            "post": {
-                "description": "Register a new user with email, password, and OTP verification.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "User Sign Up",
-                "parameters": [
-                    {
-                        "description": "Sign up payload",
-                        "name": "userToSignUp",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.SignUpUser"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Success\" \"Example: {\\\"message\\\": \\\"User signed up successfully !\\\"}",
-                        "schema": {
-                            "$ref": "#/definitions/model.APIResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Validation error\" \"Example: {\\\"message\\\": \\\"Request failed\\\", \\\"errors\\\": [{\\\"field\\\": \\\"otp_code\\\", \\\"error\\\": \\\"invalid OTP\\\"}]}",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -333,7 +241,99 @@ const docTemplate = `{
                 }
             }
         },
-        "/verify-credentials": {
+        "/user/login": {
+            "post": {
+                "description": "Login with email, password, and OTP. Returns JWT token on success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Login",
+                "parameters": [
+                    {
+                        "description": "Login payload",
+                        "name": "loginUser",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.LoginUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success\" \"Example: {\\\"message\\\": \\\"User logged in successfully !\\\", \\\"data\\\": {\\\"token\\\": \\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\\\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/model.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.LoginUserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error\" \"Example: {\\\"message\\\": \\\"Request failed\\\", \\\"errors\\\": [{\\\"field\\\": \\\"email\\\", \\\"error\\\": \\\"invalid email\\\"}]}",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/sign-up": {
+            "post": {
+                "description": "Register a new user with email, password, and OTP verification.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Sign Up",
+                "parameters": [
+                    {
+                        "description": "Sign up payload",
+                        "name": "userToSignUp",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.SignUpUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Success\" \"Example: {\\\"message\\\": \\\"User signed up successfully !\\\"}",
+                        "schema": {
+                            "$ref": "#/definitions/model.APIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error\" \"Example: {\\\"message\\\": \\\"Request failed\\\", \\\"errors\\\": [{\\\"field\\\": \\\"otp_code\\\", \\\"error\\\": \\\"invalid OTP\\\"}]}",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/verify-credentials": {
             "post": {
                 "description": "Verifies user email and password.",
                 "consumes": [

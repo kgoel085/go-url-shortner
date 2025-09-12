@@ -213,39 +213,21 @@ paths:
       summary: Redirect Short URL
       tags:
       - URL
-  /login:
-    post:
+  /app/ping:
+    get:
       consumes:
       - application/json
-      description: Login with email, password, and OTP. Returns JWT token on success.
-      parameters:
-      - description: Login payload
-        in: body
-        name: loginUser
-        required: true
-        schema:
-          $ref: '#/definitions/model.LoginUser'
+      description: Health check endpoint. Returns "pong" if the server is running.
       produces:
       - application/json
       responses:
         "200":
-          description: 'Success" "Example: {\"message\": \"User logged in successfully
-            !\", \"data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}}'
+          description: 'Success" "Example: {\"message\": \"pong\"}'
           schema:
-            allOf:
-            - $ref: '#/definitions/model.APIResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.LoginUserResponse'
-              type: object
-        "400":
-          description: 'Validation error" "Example: {\"message\": \"Request failed\",
-            \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}'
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-      summary: User Login
+            $ref: '#/definitions/model.APIResponse'
+      summary: Ping
       tags:
-      - Auth
+      - App
   /otp/send:
     post:
       consumes:
@@ -305,49 +287,6 @@ paths:
       summary: Verify OTP
       tags:
       - OTP
-  /ping:
-    get:
-      consumes:
-      - application/json
-      description: Health check endpoint. Returns "pong" if the server is running.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 'Success" "Example: {\"message\": \"pong\"}'
-          schema:
-            $ref: '#/definitions/model.APIResponse'
-      summary: Ping
-      tags:
-      - App
-  /sign-up:
-    post:
-      consumes:
-      - application/json
-      description: Register a new user with email, password, and OTP verification.
-      parameters:
-      - description: Sign up payload
-        in: body
-        name: userToSignUp
-        required: true
-        schema:
-          $ref: '#/definitions/model.SignUpUser'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: 'Success" "Example: {\"message\": \"User signed up successfully
-            !\"}'
-          schema:
-            $ref: '#/definitions/model.APIResponse'
-        "400":
-          description: 'Validation error" "Example: {\"message\": \"Request failed\",
-            \"errors\": [{\"field\": \"otp_code\", \"error\": \"invalid OTP\"}]}'
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-      summary: User Sign Up
-      tags:
-      - Auth
   /url/list:
     get:
       consumes:
@@ -416,7 +355,68 @@ paths:
       summary: Register Short URL
       tags:
       - URL
-  /verify-credentials:
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email, password, and OTP. Returns JWT token on success.
+      parameters:
+      - description: Login payload
+        in: body
+        name: loginUser
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"User logged in successfully
+            !\", \"data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.LoginUserResponse'
+              type: object
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: User Login
+      tags:
+      - Auth
+  /user/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email, password, and OTP verification.
+      parameters:
+      - description: Sign up payload
+        in: body
+        name: userToSignUp
+        required: true
+        schema:
+          $ref: '#/definitions/model.SignUpUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'Success" "Example: {\"message\": \"User signed up successfully
+            !\"}'
+          schema:
+            $ref: '#/definitions/model.APIResponse'
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"otp_code\", \"error\": \"invalid OTP\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: User Sign Up
+      tags:
+      - Auth
+  /user/verify-credentials:
     post:
       consumes:
       - application/json
