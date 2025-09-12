@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
     project_name:
         description: 'Project name'
+        required: true
         default: 'go-url-shortner'
     inputs:
       version:
