@@ -2,8 +2,8 @@ name: Deploy ${{ vars.PROJECT_NAME }} on Release
 
 permissions:
   contents: read
-  packages: write   # Needed to push to GHCR
-  id-token: write   # Optional, useful for future OIDC auth
+  packages: write   # Needed to push/pull to GHCR
+  id-token: write   # Optional, for OIDC-based auth in future
 
 on:
   release:
@@ -31,7 +31,11 @@ jobs:
         run: |
           VERSION=${{ github.event.release.tag_name }}
           IMAGE=ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}
-          docker build -t $IMAGE:latest -t $IMAGE:$VERSION .
+          echo "Building image: $IMAGE"
+          docker build \
+            --build-arg VERSION=$VERSION \
+            -t $IMAGE:latest \
+            -t $IMAGE:$VERSION .
           docker push $IMAGE:latest
           docker push $IMAGE:$VERSION
 
@@ -43,6 +47,18 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
+            export PROJECT_NAME=${{ vars.PROJECT_NAME }}
+            export IMAGE=ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}
+            export VERSION=${{ github.event.release.tag_name }}
+
+            echo "Deploying $IMAGE:$VERSION on VPS..."
+
             cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ vars.PROJECT_NAME }}
+
+            # Update env if needed (optional step, if you keep .env synced from GH vars/secrets)
+            # echo "APP_ENV=${{ vars.APP_ENV }}" > .env
+
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans
+            docker system prune -f
