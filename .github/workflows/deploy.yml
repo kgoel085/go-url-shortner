@@ -10,11 +10,10 @@ on:
   #   tags:
   #     - 'v*.*.*'  # Trigger on version tags like v1.0.0
   workflow_dispatch:
-    project_name:
-        description: 'Project name'
-        required: true
-        default: 'go-url-shortner'
     inputs:
+      project_name:
+        description: 'Project name'
+        default: 'go-url-shortner'
       version:
         description: 'Version to deploy (e.g., 1.0.0)'
         required: true
