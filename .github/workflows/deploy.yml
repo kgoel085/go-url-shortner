@@ -24,6 +24,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug secrets
+        run: |
+          echo "SERVER_IP=${{ secrets.SERVER_IP }}"
+          echo "SERVER_USER=${{ secrets.SERVER_USER }}"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
