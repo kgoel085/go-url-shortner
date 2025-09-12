@@ -10,6 +10,9 @@ on:
   #   tags:
   #     - 'v*.*.*'  # Trigger on version tags like v1.0.0
   workflow_dispatch:
+    project_name:
+        description: 'Project name'
+        default: 'go-url-shortner'
     inputs:
       version:
         description: 'Version to deploy (e.g., 1.0.0)'
@@ -42,7 +45,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ secrets.PROJECT_NAME }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ github.event.inputs.project_name }}
           echo "Building image $IMAGE:$VERSION"
           docker build -t $IMAGE:latest -t $IMAGE:$VERSION .
           docker push $IMAGE:latest
@@ -55,7 +58,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ secrets.PROJECT_NAME }}
+            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ github.event.inputs.project_name }}
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f
