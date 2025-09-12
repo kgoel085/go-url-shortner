@@ -1,4 +1,4 @@
-name: Deploy on Release
+name: Deploy Project
 
 permissions:
   contents: read
@@ -6,9 +6,15 @@ permissions:
   id-token: write
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  # push:
+  #   tags:
+  #     - 'v*.*.*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 1.0.0)'
+        required: true
+        default: 'latest'
 
 jobs:
   build-and-deploy:
@@ -25,10 +31,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image
+      - name: Set deployment version
         run: |
-          VERSION=${{ github.event.release.tag_name }}
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=${GITHUB_REF_NAME#refs/tags/}
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        run: |
           IMAGE=ghcr.io/${{ github.repository_owner }}/${{ secrets.PROJECT_NAME }}
+          echo "Building image $IMAGE:$VERSION"
           docker build -t $IMAGE:latest -t $IMAGE:$VERSION .
           docker push $IMAGE:latest
           docker push $IMAGE:$VERSION
