@@ -1,0 +1,48 @@
+name: Deploy ${{ variables.PROJECT_NAME }} on Release
+
+permissions:
+  contents: read
+  packages: write   # Needed to push to GHCR
+  id-token: write   # Optional, useful for future OIDC auth
+
+on:
+  release:
+    types: [published]   # Runs only when a release is published
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Log in to GHCR
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build and push Docker image (tagged with release version + latest)
+      - name: Build and push image
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ variables.PROJECT_NAME }}
+          docker build -t $IMAGE:latest -t $IMAGE:$VERSION .
+          docker push $IMAGE:latest
+          docker push $IMAGE:$VERSION
+
+      # Deploy to VPS
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ variables.PROJECT_NAME }}
+            docker compose pull
+            docker compose up -d
