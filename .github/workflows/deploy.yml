@@ -1,4 +1,4 @@
-name: Deploy ${{ secrets.PROJECT_NAME }} on Release
+name: Deploy on Release
 
 permissions:
   contents: read
