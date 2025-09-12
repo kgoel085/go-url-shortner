@@ -1,4 +1,4 @@
-name: Deploy ${{ variables.PROJECT_NAME }} on Release
+name: Deploy ${{ vars.PROJECT_NAME }} on Release
 
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
       - name: Build and push image
         run: |
           VERSION=${{ github.event.release.tag_name }}
-          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ variables.PROJECT_NAME }}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}
           docker build -t $IMAGE:latest -t $IMAGE:$VERSION .
           docker push $IMAGE:latest
           docker push $IMAGE:$VERSION
@@ -43,6 +43,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ variables.PROJECT_NAME }}
+            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ vars.PROJECT_NAME }}
             docker compose pull
             docker compose up -d
