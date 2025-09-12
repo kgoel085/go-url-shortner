@@ -1,24 +1,22 @@
-name: Deploy ${{ vars.PROJECT_NAME }} on Release
+name: Deploy ${{ secrets.PROJECT_NAME }} on Release
 
 permissions:
   contents: read
-  packages: write   # Needed to push/pull to GHCR
-  id-token: write   # Optional, for OIDC-based auth in future
+  packages: write
+  id-token: write
 
 on:
   release:
-    types: [published]   # Runs only when a release is published
+    types: [published]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Log in to GHCR
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -26,20 +24,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build and push Docker image (tagged with release version + latest)
       - name: Build and push image
         run: |
           VERSION=${{ github.event.release.tag_name }}
-          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}
-          echo "Building image: $IMAGE"
-          docker build \
-            --build-arg VERSION=$VERSION \
-            -t $IMAGE:latest \
-            -t $IMAGE:$VERSION .
+          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ secrets.PROJECT_NAME }}
+          docker build -t $IMAGE:latest -t $IMAGE:$VERSION .
           docker push $IMAGE:latest
           docker push $IMAGE:$VERSION
 
-      # Deploy to VPS
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -47,18 +39,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e
-            export PROJECT_NAME=${{ vars.PROJECT_NAME }}
-            export IMAGE=ghcr.io/${{ github.repository_owner }}/${{ vars.PROJECT_NAME }}
-            export VERSION=${{ github.event.release.tag_name }}
-
-            echo "Deploying $IMAGE:$VERSION on VPS..."
-
-            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ vars.PROJECT_NAME }}
-
-            # Update env if needed (optional step, if you keep .env synced from GH vars/secrets)
-            # echo "APP_ENV=${{ vars.APP_ENV }}" > .env
-
+            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ secrets.PROJECT_NAME }}
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f
