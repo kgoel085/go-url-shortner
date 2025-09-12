@@ -14,6 +14,7 @@ import (
 )
 
 func UrlShorterRoutes(router *gin.RouterGroup) {
+	router.GET("/", handleRoot)
 	router.GET("/:code", handleGetUrls)
 
 	authenticated := router.Group("/url")
@@ -21,6 +22,12 @@ func UrlShorterRoutes(router *gin.RouterGroup) {
 
 	authenticated.POST("/register", handleShortUrl)
 	authenticated.GET("/list", handleListUrls)
+}
+
+func handleRoot(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Welcome to %s URL Shortener Service", config.Config.APP.Name),
+	})
 }
 
 // @Summary      List User URLs

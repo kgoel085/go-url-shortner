@@ -23,10 +23,15 @@ func SetUpRouter(server *gin.Engine) {
 }
 
 func setUpSwagger(server *gin.Engine) {
+	hostName := config.Config.APP.SwaggerHost
+	if hostName == "" {
+		hostName = config.Config.APP.Host + ":" + config.Config.APP.Port
+	}
+
 	docs.SwaggerInfo.Title = config.Config.APP.Name
 	docs.SwaggerInfo.Description = "A robust URL shortener service built with Go, Gin, PostgreSQL, and Redis. This project provides a scalable API for shortening URLs, tracking usage, and managing links securely."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = config.Config.APP.Host + ":" + config.Config.APP.Port
+	docs.SwaggerInfo.Host = hostName
 	docs.SwaggerInfo.BasePath = "/"
 	// Dynamically set schemes based on config or environment
 	if config.Config.APP.EnableHTTPS {
