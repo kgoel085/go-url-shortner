@@ -20,7 +20,6 @@ WORKDIR /app
 
 # Copy the built binary and .env file
 COPY --from=builder /app/url-shortner .
-COPY .env .
 
 # Install 'grep' for extracting port from .env
 RUN apk add --no-cache grep
