@@ -6,8 +6,9 @@ permissions:
   id-token: write
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build-and-deploy:
