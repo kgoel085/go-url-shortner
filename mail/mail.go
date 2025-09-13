@@ -17,7 +17,7 @@ import (
 
 type MailType string
 
-const SUPPORT_EMAIL = "support@support.com"
+const SUPPORT_EMAIL = "support@homelabnoob.com"
 const (
 	MailTypeSignUp        MailType = "sign_up"
 	MailTypeSendOTP       MailType = "send_otp"
@@ -120,7 +120,7 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 	}
 
 	e := email.NewEmail()
-	e.From = fmt.Sprintf("%s <%s>", config.Config.APP.Name, SUPPORT_EMAIL)
+	e.From = fmt.Sprintf("%s <%s>", config.Config.APP.Name, config.Config.SMTP.Domain)
 	e.To = []string{toEmail}
 	e.Subject = subject
 	e.HTML = buf.Bytes()
@@ -183,5 +183,10 @@ func SendShortUrlUserMail(u model.Url) error {
 		},
 	}
 
-	return sendMail(MailTypeURLRegistered, data, user.Email, "Your shortened URL is ready")
+	sendMailErr := sendMail(MailTypeURLRegistered, data, user.Email, "Your shortened URL is ready")
+	if sendMailErr != nil {
+		utils.Log.Error("Error sending URL registered email: ", sendMailErr)
+	}
+
+	return sendMailErr
 }

@@ -25,6 +25,7 @@ type smtpConfig struct {
 	Port     string `env:"SMTP_PORT,required"`
 	Username string `env:"SMTP_USER,required" binding:"mail"`
 	Password string `env:"SMTP_PWD,required"`
+	Domain   string `env:"SMTP_DOMAIN" envDEFAULT:"localhost"`
 }
 
 type appConfig struct {
