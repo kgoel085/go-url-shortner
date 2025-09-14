@@ -119,8 +119,15 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 		return executeErr
 	}
 
+	fromMail := fmt.Sprintf("no-reply@%s", config.Config.SMTP.Domain)
+	if config.Config.SMTP.FromMail != "" {
+		fromMail = config.Config.SMTP.FromMail
+	}
+
+	utils.Log.Info("Sending email to ", toEmail, " from ", fromMail, " via ", config.Config.SMTP.Host)
+
 	e := email.NewEmail()
-	e.From = fmt.Sprintf("%s <%s>", config.Config.APP.Name, config.Config.SMTP.Domain)
+	e.From = fmt.Sprintf("%s <%s>", config.Config.APP.Name, fromMail)
 	e.To = []string{toEmail}
 	e.Subject = subject
 	e.HTML = buf.Bytes()
@@ -130,6 +137,7 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 	err := e.Send(smtpUrl,
 		smtp.PlainAuth("", config.Config.SMTP.Username, config.Config.SMTP.Password, config.Config.SMTP.Host))
 	if err != nil {
+		utils.Log.Error("Error sending email: ", err)
 		return err
 	}
 
