@@ -117,7 +117,7 @@ Visual flow diagrams for the main actions in the URL Shortener service:
 
 You can view and test the full API documentation and request/response payloads using Swagger UI here:
 
-[https://url-shortner-go.homelabnoob.com/swagger/index.html](https://url-shortner-go.homelabnoob.com/swagger/index.html)
+[https://url-shortner-go-api.homelabnoob.com/swagger/index.html](https://url-shortner-go-api.homelabnoob.com/swagger/index.html)
 
 ---
 
