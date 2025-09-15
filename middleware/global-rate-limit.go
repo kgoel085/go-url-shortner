@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/db"
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/db"
 )
 
 func GlobalRateLimit(context *gin.Context) {

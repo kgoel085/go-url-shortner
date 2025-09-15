@@ -3,9 +3,9 @@ package utils
 import (
 	"fmt"
 
-	"example.com/url-shortner/config"
 	"github.com/gosimple/slug"
 	"github.com/segmentio/ksuid"
+	"kgoel085.com/url-shortner/config"
 )
 
 func GetShortUrl(code string) string {

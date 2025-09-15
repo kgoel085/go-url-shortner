@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	customValidator "example.com/url-shortner/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
+	customValidator "kgoel085.com/url-shortner/validator"
 )
 
 // ErrorDetail represents a single field error

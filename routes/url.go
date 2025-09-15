@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/mail"
-	"example.com/url-shortner/middleware"
-	"example.com/url-shortner/model"
-	"example.com/url-shortner/utils"
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/mail"
+	"kgoel085.com/url-shortner/middleware"
+	"kgoel085.com/url-shortner/model"
+	"kgoel085.com/url-shortner/utils"
 )
 
 func UrlShorterRoutes(router *gin.RouterGroup) {

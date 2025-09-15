@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"example.com/url-shortner/db"
-	"example.com/url-shortner/utils"
+	"kgoel085.com/url-shortner/db"
+	"kgoel085.com/url-shortner/utils"
 )
 
 type Analytics struct {

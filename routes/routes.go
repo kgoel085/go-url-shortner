@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/docs"
-	"example.com/url-shortner/middleware"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/docs"
+	"kgoel085.com/url-shortner/middleware"
 )
 
 func SetUpRouter(server *gin.Engine) {

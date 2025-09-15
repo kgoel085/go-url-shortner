@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/db"
-	"example.com/url-shortner/routes"
-	"example.com/url-shortner/utils"
-	"example.com/url-shortner/validator"
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/db"
+	"kgoel085.com/url-shortner/routes"
+	"kgoel085.com/url-shortner/utils"
+	"kgoel085.com/url-shortner/validator"
 )
 
 // @securityDefinitions.apikey BearerAuth

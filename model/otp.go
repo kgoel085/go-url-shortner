@@ -6,9 +6,9 @@ import (
 	"math/rand"
 	"time"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/db"
-	"example.com/url-shortner/utils"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/db"
+	"kgoel085.com/url-shortner/utils"
 )
 
 type OtpType string

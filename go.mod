@@ -1,4 +1,4 @@
-module example.com/url-shortner
+module kgoel085.com/url-shortner
 
 go 1.24.0
 

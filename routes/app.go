@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
-	"example.com/url-shortner/model"
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/model"
 )
 
 func AppRoutes(router *gin.RouterGroup) {

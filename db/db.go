@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/utils"
 	_ "github.com/lib/pq"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/utils"
 )
 
 var DB *sql.DB

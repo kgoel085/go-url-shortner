@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"example.com/url-shortner/config"
 	"github.com/golang-jwt/jwt/v5"
+	"kgoel085.com/url-shortner/config"
 )
 
 func GenerateJWT(userID int64) (string, error) {

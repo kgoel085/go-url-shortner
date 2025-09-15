@@ -9,10 +9,10 @@ import (
 
 	_ "embed"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/model"
-	"example.com/url-shortner/utils"
 	"github.com/jordan-wright/email"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/model"
+	"kgoel085.com/url-shortner/utils"
 )
 
 type MailType string

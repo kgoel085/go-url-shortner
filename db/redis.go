@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"example.com/url-shortner/config"
 	"github.com/go-redis/redis_rate/v10"
 	limiter "github.com/go-redis/redis_rate/v10"
 	redis "github.com/redis/go-redis/v9"
+	"kgoel085.com/url-shortner/config"
 )
 
 var (

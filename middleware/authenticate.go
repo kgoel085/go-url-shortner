@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"example.com/url-shortner/config"
-	"example.com/url-shortner/utils"
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/utils"
 )
 
 func Authenticate(context *gin.Context) {

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"example.com/url-shortner/mail"
-	"example.com/url-shortner/model"
-	"example.com/url-shortner/utils"
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/mail"
+	"kgoel085.com/url-shortner/model"
+	"kgoel085.com/url-shortner/utils"
 )
 
 func OtpRoutes(router *gin.RouterGroup) {
