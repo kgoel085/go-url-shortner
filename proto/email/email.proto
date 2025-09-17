@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package proto; // this defines "email.EmailService"
+
+option go_package = "kgoel085.com/url-shortner/proto/email;email";
+
+
+// Request message for sending email
+message SendEmailRequest {
+    string to_email = 1;
+    string subject = 2;
+    string content = 3;
+    string project_id = 4;
+}
+
+// Response message for sending email
+message SendEmailResponse {
+    string id = 1;
+    string to_email = 2;
+}
+
+// Email service definition
+service EmailService {
+    rpc SendEmail(SendEmailRequest) returns (SendEmailResponse);
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"kgoel085.com/url-shortner/config"
 	"kgoel085.com/url-shortner/db"
+	"kgoel085.com/url-shortner/proto"
 	"kgoel085.com/url-shortner/routes"
 	"kgoel085.com/url-shortner/utils"
 	"kgoel085.com/url-shortner/validator"
@@ -23,6 +24,7 @@ func main() {
 	db.InitRedis()                 // Initialize Redis client
 	db.InitDB()                    // Initialize Postgres client
 	validator.LoadCustomBindings() // Load custom validators
+	proto.InitClients()            // Initialize gRPC clients
 	routes.SetUpRouter(server)     // Setup all routes
 
 	appUrl := fmt.Sprintf("%s:%s", config.Config.APP.Host, config.Config.APP.Port)

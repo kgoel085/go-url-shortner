@@ -36,6 +36,7 @@ type appConfig struct {
 	Port           string `env:"PORT,required" envDefault:"8000"`
 	TrustedProxies string `env:"TRUSTED_ORIGINS" envDefault:""`
 	EnableHTTPS    bool   `env:"ENABLE_HTTPS" envDefault:"false"`
+	ProjectID      string `env:"PROJECT_ID,required"`
 }
 
 type JWTConfig struct {
@@ -49,6 +50,10 @@ type redisConfig struct {
 	DB       int    `env:"REDIS_DB" envDefault:"0"`
 }
 
+type grpcConfig struct {
+	EmailServiceAddr string `env:"EMAIL_SERVICE_ADDR" envDefault:"localhost:8011"`
+}
+
 type AllConfig struct {
 	APP   appConfig
 	DB    dbConfig
@@ -56,6 +61,7 @@ type AllConfig struct {
 	OTP   otpConfig
 	JWT   JWTConfig
 	REDIS redisConfig
+	GRPC  grpcConfig
 }
 
 var Config AllConfig

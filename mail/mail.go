@@ -5,13 +5,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"html/template"
-	"net/smtp"
 
 	_ "embed"
 
-	"github.com/jordan-wright/email"
 	"kgoel085.com/url-shortner/config"
 	"kgoel085.com/url-shortner/model"
+	"kgoel085.com/url-shortner/proto/email"
 	"kgoel085.com/url-shortner/utils"
 )
 
@@ -125,17 +124,14 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 	}
 
 	utils.Log.Info("Sending email to ", toEmail, " from ", fromMail, " via ", config.Config.SMTP.Host)
-
-	e := email.NewEmail()
-	e.From = fmt.Sprintf("%s <%s>", config.Config.APP.Name, fromMail)
-	e.To = []string{toEmail}
-	e.Subject = subject
-	e.HTML = buf.Bytes()
-	e.Text = buf.Bytes()
-
-	smtpUrl := fmt.Sprintf("%s:%s", config.Config.SMTP.Host, config.Config.SMTP.Port)
-	err := e.Send(smtpUrl,
-		smtp.PlainAuth("", config.Config.SMTP.Username, config.Config.SMTP.Password, config.Config.SMTP.Host))
+	err := email.SendEmailViaGRPC(
+		email.GrpcSendEmailRequest{
+			ToEmail:   toEmail,
+			Subject:   subject,
+			Content:   buf.String(),
+			ProjectId: config.Config.APP.ProjectID,
+		},
+	)
 	if err != nil {
 		utils.Log.Error("Error sending email: ", err)
 		return err
