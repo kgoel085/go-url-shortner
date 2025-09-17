@@ -21,10 +21,6 @@ type dbConfig struct {
 }
 
 type smtpConfig struct {
-	Host     string `env:"SMTP_HOST,required"`
-	Port     string `env:"SMTP_PORT,required"`
-	Username string `env:"SMTP_USER,required" binding:"mail"`
-	Password string `env:"SMTP_PWD,required"`
 	Domain   string `env:"SMTP_DOMAIN" envDEFAULT:"localhost"`
 	FromMail string `env:"SMTP_FROM_EMAIL"`
 }

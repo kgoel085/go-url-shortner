@@ -123,7 +123,7 @@ func sendMail(mailType MailType, opts MailOptions, toEmail string, subject strin
 		fromMail = config.Config.SMTP.FromMail
 	}
 
-	utils.Log.Info("Sending email to ", toEmail, " from ", fromMail, " via ", config.Config.SMTP.Host)
+	utils.Log.Info("Sending email to ", toEmail, " from ", fromMail, " via GRPC")
 	err := email.SendEmailViaGRPC(
 		email.GrpcSendEmailRequest{
 			ToEmail:   toEmail,
