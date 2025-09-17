@@ -36,5 +36,10 @@ func main() {
 	}
 
 	utils.Log.Info("Starting server...")
-	server.Run(appUrl)
+	serverErr := server.Run(appUrl)
+
+	if serverErr != nil {
+		utils.Log.Fatal("Failed to start server: ", serverErr)
+	}
+	utils.Log.Info("Server started at ", appUrl)
 }
