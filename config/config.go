@@ -47,7 +47,7 @@ type redisConfig struct {
 }
 
 type grpcConfig struct {
-	EmailServiceAddr string `env:"EMAIL_SERVICE_ADDR" envDefault:"localhost:8011"`
+	EmailServiceAddr string `env:"GRPC_EMAIL_SERVICE_ADDR" envDefault:"localhost:8011"`
 }
 
 type AllConfig struct {
