@@ -54,6 +54,7 @@ func createRefreshTokenTable() {
 		token TEXT NOT NULL,
 		expires_at TIMESTAMP NOT NULL,
 		created_at TIMESTAMP NOT NULL,
+		is_used BOOLEAN NOT NULL DEFAULT FALSE,
 		FOREIGN KEY (user_id) REFERENCES users(id),	
 		UNIQUE(user_id, token)
 	);`

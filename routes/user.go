@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"kgoel085.com/url-shortner/config"
 	"kgoel085.com/url-shortner/mail"
 	"kgoel085.com/url-shortner/middleware"
 	"kgoel085.com/url-shortner/model"
@@ -28,7 +29,7 @@ func UserRoutes(router *gin.RouterGroup) {
 // @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Request failed\", \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}"
 // @Router       /user/refresh-token [post]
 func handleRefreshToken(ctx *gin.Context) {
-	loggedInUser := ctx.GetInt64("loggedInUser")
+	loggedInUser := ctx.GetInt64(config.JWT_LOGGED_IN_USER)
 	utils.Log.Info("Refresh token for user:", loggedInUser)
 
 	headerToken := ctx.Request.Header.Get("Authorization")

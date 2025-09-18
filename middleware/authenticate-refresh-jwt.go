@@ -52,6 +52,13 @@ func AuthenticateRefreshToken(context *gin.Context) {
 		return
 	}
 
+	if userRefreshToken.IsUsed {
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"message": fmt.Sprintf("Unauthorized - %s", errors.New("Refresh token has been used").Error()),
+		})
+		return
+	}
+
 	context.Set(config.JWT_LOGGED_IN_USER, tokenUserId) // Set it to be available for further requests
 	context.Next()
 }

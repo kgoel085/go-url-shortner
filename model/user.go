@@ -21,6 +21,7 @@ type UserRefreshToken struct {
 	ID        int64     `json:"id"`
 	UserID    int64     `json:"user_id"`
 	Token     string    `json:"token"`
+	IsUsed    bool      `json:"is_used"`
 	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -90,6 +91,14 @@ func (u *User) GenerateRefreshJWT() (string, error) {
 	// Use encrypted token for storage
 	token = encryptedToken
 
+	// Mark all records as used for this user
+	markUsedQuery := `UPDATE refresh_tokens SET is_used = TRUE WHERE user_id = $1`
+	_, markUsedErr := db.DB.Exec(markUsedQuery, u.ID)
+	if markUsedErr != nil {
+		errStr := fmt.Sprintf("Error marking old refresh tokens as used - %s !", markUsedErr.Error())
+		return "", fmt.Errorf("%s", errStr)
+	}
+
 	// Save refresh token in DB
 	expiryInMin := config.Config.JWT.RefreshExpiryMinutes
 	expiresAt := time.Now().Add(time.Duration(expiryInMin) * time.Minute)
@@ -130,12 +139,12 @@ func (u *User) ValidateCredentials() error {
 func GetRefreshTokenByToken(token string) (UserRefreshToken, error) {
 	var refreshToken UserRefreshToken
 
-	query := `SELECT id, token, expires_at, user_id, created_at FROM refresh_tokens WHERE token=$1`
+	query := `SELECT id, token, expires_at, user_id, created_at, is_used FROM refresh_tokens WHERE token=$1`
 
 	logStr := fmt.Sprintf("Get refresh token from DB : %s, Timestamp: %s", query, time.Now().UTC())
 	utils.Log.Info(logStr)
 
-	rowErr := db.DB.QueryRow(query, token).Scan(&refreshToken.ID, &refreshToken.Token, &refreshToken.ExpiresAt, &refreshToken.UserID, &refreshToken.CreatedAt)
+	rowErr := db.DB.QueryRow(query, token).Scan(&refreshToken.ID, &refreshToken.Token, &refreshToken.ExpiresAt, &refreshToken.UserID, &refreshToken.CreatedAt, &refreshToken.IsUsed)
 	if rowErr != nil {
 		if rowErr == sql.ErrNoRows {
 			return refreshToken, fmt.Errorf("Refresh token not found")
