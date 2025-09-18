@@ -65,7 +65,7 @@ jobs:
           port: ${{ secrets.SERVER_SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ github.event.inputs.project_name }}
+            cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ github.event.inputs.project_name || 'go-url-shortner' }}
             # Echo current directory
             echo "Current directory: $(pwd)"
             # List files in the directory
