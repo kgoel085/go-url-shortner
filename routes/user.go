@@ -1,11 +1,12 @@
 package routes
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"kgoel085.com/url-shortner/mail"
+	"kgoel085.com/url-shortner/middleware"
 	"kgoel085.com/url-shortner/model"
 	"kgoel085.com/url-shortner/utils"
 )
@@ -13,7 +14,49 @@ import (
 func UserRoutes(router *gin.RouterGroup) {
 	router.POST("/sign-up", handleSignUp)
 	router.POST("/login", handleLogin)
+	router.POST("/refresh-token", middleware.AuthenticateRefreshToken, handleRefreshToken) // Reuse login handler to issue new JWT
 	router.POST("/verify-credentials", handleVerifyCredentials)
+}
+
+// @Summary      User Refresh Token
+// @Description  Refresh token. Returns JWT token on success.
+// @Security     BearerAuth
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  model.APIResponse{data=model.LoginUserResponse} "Success" "Example: {\"message\": \"User logged in successfully !\", \"data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}}"
+// @Failure      400  {object}  utils.ErrorResponse "Validation error" "Example: {\"message\": \"Request failed\", \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}"
+// @Router       /user/refresh-token [post]
+func handleRefreshToken(ctx *gin.Context) {
+	loggedInUser := ctx.GetInt64("loggedInUser")
+	utils.Log.Info("Refresh token for user:", loggedInUser)
+
+	headerToken := ctx.Request.Header.Get("Authorization")
+	if headerToken == "" {
+		utils.HandleValidationError(ctx, errors.New("Authorization token missing"))
+		return
+	}
+
+	user := model.User{
+		ID: loggedInUser,
+	}
+
+	token, tokenErr := user.GenerateJWT()
+	if tokenErr != nil {
+		utils.HandleValidationError(ctx, tokenErr)
+		return
+	}
+
+	refreshToken, refreshTokenErr := user.GenerateRefreshJWT()
+	if refreshTokenErr != nil {
+		utils.HandleValidationError(ctx, refreshTokenErr)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, model.APIResponse{
+		Message: "Token refreshed successfully !",
+		Data:    model.LoginUserResponse{Token: token, RefreshToken: refreshToken},
+	})
 }
 
 // @Summary      User Login
@@ -34,7 +77,7 @@ func handleLogin(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("User to login payload: ", loginUser)
+	utils.Log.Info("User to login payload: ", loginUser)
 	user := model.User{
 		Email:    loginUser.Email,
 		Password: loginUser.Password,
@@ -66,9 +109,15 @@ func handleLogin(ctx *gin.Context) {
 		return
 	}
 
+	refreshToken, refreshTokenErr := user.GenerateRefreshJWT()
+	if refreshTokenErr != nil {
+		utils.HandleValidationError(ctx, refreshTokenErr)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, model.APIResponse{
 		Message: "User logged in successfully !",
-		Data:    model.LoginUserResponse{Token: token},
+		Data:    model.LoginUserResponse{Token: token, RefreshToken: refreshToken},
 	})
 }
 
@@ -90,7 +139,7 @@ func handleVerifyCredentials(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("User to verify credentials: ", userCreds)
+	utils.Log.Info("User to verify credentials: ", userCreds)
 	user := model.User{
 		Email:    userCreds.Email,
 		Password: userCreds.Password,
@@ -125,7 +174,7 @@ func handleSignUp(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("User to sign up payload: ", userToSignUp)
+	utils.Log.Info("User to sign up payload: ", userToSignUp)
 	user := model.User{
 		Email:    userToSignUp.Email,
 		Password: userToSignUp.Password,

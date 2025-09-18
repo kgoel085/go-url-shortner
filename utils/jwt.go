@@ -8,17 +8,33 @@ import (
 	"kgoel085.com/url-shortner/config"
 )
 
-func GenerateJWT(userID int64) (string, error) {
+type JwtType string
+
+const (
+	LoginJwtType   JwtType = "login"
+	RefreshJwtType JwtType = "refresh"
+)
+
+type GenerateJwtWithClaims struct {
+	Claims      jwt.MapClaims `binding:"required"`
+	SecretKey   string        `binding:"required"`
+	ExpiryInMin int64         `binding:"required"`
+}
+
+func GenerateLoginJWT(userID int64) (string, error) {
 	expiryInMin := config.Config.JWT.ExpiryMinutes
 	jwtSecretKey := config.Config.JWT.SecretKey
 
-	fmt.Println("JWT GENERATION CONFIG ::", expiryInMin, jwtSecretKey)
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId": userID,
-		"exp":    time.Now().Add(time.Minute * time.Duration(expiryInMin)).Unix(),
-	})
+	Log.Info("JWT GENERATION CONFIG ::", expiryInMin, jwtSecretKey)
+	payload := GenerateJwtWithClaims{
+		Claims: jwt.MapClaims{
+			"userId": userID,
+		},
+		SecretKey:   jwtSecretKey,
+		ExpiryInMin: expiryInMin,
+	}
 
-	token, err := jwtToken.SignedString([]byte(jwtSecretKey))
+	token, err := generateJwtWithClaims(payload)
 	if err != nil {
 		return token, err
 	}
@@ -26,8 +42,51 @@ func GenerateJWT(userID int64) (string, error) {
 	return token, nil
 }
 
-func ValidateJWT(token string) (int64, error) {
+func GenerateRefreshJWT(userID int64) (string, error) {
+	expiryInMin := config.Config.JWT.RefreshExpiryMinutes
+	jwtSecretKey := config.Config.JWT.RefreshSecretKey
+
+	Log.Info("Refresh JWT GENERATION CONFIG ::", expiryInMin, jwtSecretKey)
+	payload := GenerateJwtWithClaims{
+		Claims: jwt.MapClaims{
+			"userId": userID,
+		},
+		SecretKey:   jwtSecretKey,
+		ExpiryInMin: expiryInMin,
+	}
+
+	token, err := generateJwtWithClaims(payload)
+	if err != nil {
+		return token, err
+	}
+
+	return token, nil
+}
+
+func generateJwtWithClaims(payload GenerateJwtWithClaims) (string, error) {
+	claims := payload.Claims
+	claims["exp"] = time.Now().Add(time.Minute * time.Duration(payload.ExpiryInMin)).Unix()
+
+	Log.Info("Generating JWT with claims: ", claims)
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token, err := jwtToken.SignedString([]byte(payload.SecretKey))
+	if err != nil {
+		return token, err
+	}
+
+	return token, nil
+}
+
+func ValidateJWT(token string, tokenType JwtType) (int64, error) {
+	if tokenType == "" {
+		return 0, fmt.Errorf("token type is required")
+	}
+
 	jwtSecretKey := config.Config.JWT.SecretKey
+	if tokenType == RefreshJwtType {
+		jwtSecretKey = config.Config.JWT.RefreshSecretKey
+	}
+
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
@@ -50,7 +109,6 @@ func ValidateJWT(token string) (int64, error) {
 		return 0, fmt.Errorf("Invalid claims !")
 	}
 
-	// email, _ := claims["email"].(string)
 	userId, _ := claims["userId"].(float64)
 
 	return int64(userId), nil

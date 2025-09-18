@@ -9,6 +9,7 @@ import (
 	limiter "github.com/go-redis/redis_rate/v10"
 	redis "github.com/redis/go-redis/v9"
 	"kgoel085.com/url-shortner/config"
+	"kgoel085.com/url-shortner/utils"
 )
 
 var (
@@ -31,7 +32,7 @@ func InitRedis() {
 	if redisErr != nil {
 		panic(redisErr)
 	}
-	fmt.Println("Redis Ping:", redisPing)
+	utils.Log.Info("Redis Ping:", redisPing)
 
 	RedisLimiter = redis_rate.NewLimiter(RedisClient)
 

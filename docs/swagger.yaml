@@ -49,6 +49,9 @@ definitions:
     type: object
   model.LoginUserResponse:
     properties:
+      refresh_token:
+        example: JWT Refresh Token
+        type: string
       token:
         example: JWT Token
         type: string
@@ -386,6 +389,34 @@ paths:
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
       summary: User Login
+      tags:
+      - Auth
+  /user/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Refresh token. Returns JWT token on success.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Success" "Example: {\"message\": \"User logged in successfully
+            !\", \"data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.LoginUserResponse'
+              type: object
+        "400":
+          description: 'Validation error" "Example: {\"message\": \"Request failed\",
+            \"errors\": [{\"field\": \"email\", \"error\": \"invalid email\"}]}'
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: User Refresh Token
       tags:
       - Auth
   /user/sign-up:

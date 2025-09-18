@@ -293,6 +293,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/refresh-token": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Refresh token. Returns JWT token on success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User Refresh Token",
+                "responses": {
+                    "200": {
+                        "description": "Success\" \"Example: {\\\"message\\\": \\\"User logged in successfully !\\\", \\\"data\\\": {\\\"token\\\": \\\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\\\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/model.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.LoginUserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error\" \"Example: {\\\"message\\\": \\\"Request failed\\\", \\\"errors\\\": [{\\\"field\\\": \\\"email\\\", \\\"error\\\": \\\"invalid email\\\"}]}",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/sign-up": {
             "post": {
                 "description": "Register a new user with email, password, and OTP verification.",
@@ -482,6 +528,10 @@ const docTemplate = `{
         "model.LoginUserResponse": {
             "type": "object",
             "properties": {
+                "refresh_token": {
+                    "type": "string",
+                    "example": "JWT Refresh Token"
+                },
                 "token": {
                     "type": "string",
                     "example": "JWT Token"

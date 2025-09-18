@@ -30,7 +30,7 @@ func InitDB() {
 		println("Error opening database: " + errStr)
 		panic(errStr)
 	}
-	fmt.Println("DB PINGED: ", DB.Ping())
+	utils.Log.Info("DB PINGED: ", DB.Ping())
 
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
@@ -43,6 +43,29 @@ func createTables() {
 	createOtpTable()
 	createUrlTable()
 	createAnalyticsTable()
+	createRefreshTokenTable()
+}
+
+func createRefreshTokenTable() {
+	createRefreshTokenTable := `
+	CREATE TABLE IF NOT EXISTS refresh_tokens (
+		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+		user_id BIGINT NOT NULL,
+		token TEXT NOT NULL,
+		expires_at TIMESTAMP NOT NULL,
+		created_at TIMESTAMP NOT NULL,
+		FOREIGN KEY (user_id) REFERENCES users(id),	
+		UNIQUE(user_id, token)
+	);`
+
+	_, err := DB.Exec(createRefreshTokenTable)
+	if err != nil {
+		errStr := fmt.Sprintf("Error creating refresh_tokens table: %v", err)
+		utils.Log.Error(errStr)
+		panic(errStr)
+	} else {
+		utils.Log.Info("Table `refresh_tokens` created or already exists")
+	}
 }
 
 func createAnalyticsTable() {

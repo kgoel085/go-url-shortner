@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"kgoel085.com/url-shortner/config"
 	"kgoel085.com/url-shortner/db"
 	"kgoel085.com/url-shortner/utils"
 )
@@ -13,6 +14,14 @@ type User struct {
 	ID        int64     `json:"id"`
 	Email     string    `json:"email" binding:"email"`
 	Password  string    `json:"-"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type UserRefreshToken struct {
+	ID        int64     `json:"id"`
+	UserID    int64     `json:"user_id"`
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -37,11 +46,12 @@ type LoginUser struct {
 }
 
 type LoginUserResponse struct {
-	Token string `json:"token" example:"JWT Token"`
+	Token        string `json:"token" example:"JWT Token"`
+	RefreshToken string `json:"refresh_token" example:"JWT Refresh Token"`
 }
 
 func (u *User) Save() error {
-	userByEmail, userByEmailErr := getUserByEmail(u.Email)
+	userByEmail, userByEmailErr := GetUserByEmail(u.Email)
 	if userByEmail.Email == u.Email || userByEmailErr == nil {
 		return fmt.Errorf("user already exists !")
 	}
@@ -63,11 +73,42 @@ func (u *User) Save() error {
 }
 
 func (u *User) GenerateJWT() (string, error) {
-	return utils.GenerateJWT(u.ID)
+	return utils.GenerateLoginJWT(u.ID)
+}
+
+func (u *User) GenerateRefreshJWT() (string, error) {
+	token, tokenErr := utils.GenerateRefreshJWT(u.ID)
+	if tokenErr != nil {
+		return "", tokenErr
+	}
+
+	encryptedToken, encErr := utils.Encrypt(token)
+	if encErr != nil {
+		return "", encErr
+	}
+
+	// Use encrypted token for storage
+	token = encryptedToken
+
+	// Save refresh token in DB
+	expiryInMin := config.Config.JWT.RefreshExpiryMinutes
+	expiresAt := time.Now().Add(time.Duration(expiryInMin) * time.Minute)
+
+	query := `INSERT INTO refresh_tokens (user_id, token, expires_at, created_at) VALUES ($1, $2, $3, $4)`
+
+	logStr := fmt.Sprintf("Save refresh token in DB : %s, UserID: %d, ExpiresAt: %s", query, u.ID, expiresAt)
+	utils.Log.Info(logStr)
+
+	_, rowErr := db.DB.Exec(query, u.ID, token, expiresAt, time.Now().UTC())
+	if rowErr != nil {
+		return "", rowErr
+	}
+
+	return token, nil
 }
 
 func (u *User) ValidateCredentials() error {
-	userByEmail, userByEmailErr := getUserByEmail(u.Email)
+	userByEmail, userByEmailErr := GetUserByEmail(u.Email)
 	if userByEmailErr != nil {
 		return userByEmailErr
 	}
@@ -86,7 +127,27 @@ func (u *User) ValidateCredentials() error {
 	return nil
 }
 
-func getUserByEmail(email string) (User, error) {
+func GetRefreshTokenByToken(token string) (UserRefreshToken, error) {
+	var refreshToken UserRefreshToken
+
+	query := `SELECT id, token, expires_at, user_id, created_at FROM refresh_tokens WHERE token=$1`
+
+	logStr := fmt.Sprintf("Get refresh token from DB : %s, Timestamp: %s", query, time.Now().UTC())
+	utils.Log.Info(logStr)
+
+	rowErr := db.DB.QueryRow(query, token).Scan(&refreshToken.ID, &refreshToken.Token, &refreshToken.ExpiresAt, &refreshToken.UserID, &refreshToken.CreatedAt)
+	if rowErr != nil {
+		if rowErr == sql.ErrNoRows {
+			return refreshToken, fmt.Errorf("Refresh token not found")
+		}
+		errStr := fmt.Sprintf("Error while trying to get refresh token - %s !", rowErr.Error())
+		return refreshToken, fmt.Errorf("%s", errStr)
+	}
+
+	return refreshToken, nil
+}
+
+func GetUserByEmail(email string) (User, error) {
 	var user User
 
 	query := `SELECT id, email, password, created_at FROM users WHERE email ILIKE $1`

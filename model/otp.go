@@ -125,7 +125,7 @@ func (otp *Otp) Generate() error {
 	case otp.Action == OtpActionTypeLogin && otp.Type == OtpTypeEmail:
 		{
 			{
-				userEmail, userEmailErr := getUserByEmail(otp.Key)
+				userEmail, userEmailErr := GetUserByEmail(otp.Key)
 				if userEmailErr != nil {
 					return userEmailErr
 				}

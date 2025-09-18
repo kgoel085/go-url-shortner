@@ -33,11 +33,14 @@ type appConfig struct {
 	TrustedProxies string `env:"TRUSTED_ORIGINS" envDefault:""`
 	EnableHTTPS    bool   `env:"ENABLE_HTTPS" envDefault:"false"`
 	ProjectID      string `env:"PROJECT_ID,required"`
+	EncryptionKey  string `env:"ENCRYPTION_KEY,required"` // Must be 16, 24 or 32 bytes long
 }
 
 type JWTConfig struct {
-	SecretKey     string `env:"JWT_SECRET,required"`
-	ExpiryMinutes int64  `env:"JWT_EXPIRY_MINUTES" envDefault:"90"`
+	SecretKey            string `env:"JWT_SECRET,required"`
+	ExpiryMinutes        int64  `env:"JWT_EXPIRY_MINUTES" envDefault:"15"`
+	RefreshSecretKey     string `env:"JWT_REFRESH_SECRET,required"`
+	RefreshExpiryMinutes int64  `env:"JWT_REFRESH_EXPIRY_MINUTES" envDefault:"14400"` // 10 days
 }
 
 type redisConfig struct {

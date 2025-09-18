@@ -18,7 +18,7 @@ func Authenticate(context *gin.Context) {
 		return
 	}
 
-	tokenUserId, tokenErr := utils.ValidateJWT(token)
+	tokenUserId, tokenErr := utils.ValidateJWT(token, utils.LoginJwtType)
 	if tokenErr != nil {
 		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"message": fmt.Sprintf("Unauthorized - %s", tokenErr.Error()),
