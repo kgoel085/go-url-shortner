@@ -66,6 +66,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ${{ secrets.SERVER_PROJECT_BASE_PATH }}/${{ github.event.inputs.project_name }}
+            # Echo current directory
+            echo "Current directory: $(pwd)"
+            # List files in the directory
+            ls -la
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f
