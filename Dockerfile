@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=builder /app/url-shortner .
 
 # Install 'grep' for extracting port from .env
-RUN apk add --no-cache grep
+RUN apk add --no-cache grep curl
 
 
 EXPOSE 8001
